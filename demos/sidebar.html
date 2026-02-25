@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pockets · tabbed sidebar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, 'IBM Plex Mono', monospace;
+        }
+
+        body {
+            background-color: #f5ead9;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app {
+            width: 1500px;
+            max-width: 100%;
+            display: flex;
+            gap: 32px;
+            background: transparent;
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        .sidebar {
+            width: 340px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Pulse (always visible) */
+        .pulse {
+            background-color: #faf2e4;
+            border: 3px solid #2b2b2b;
+            padding: 16px 14px;
+            box-shadow: 5px 5px 0px 0px #8b7a62;
+        }
+        .pulse:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #8b7a62;
+        }
+        .pulse-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .generator-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .badge {
+            background: #2b2b2b;
+            color: #f5ead9;
+            padding: 4px 8px;
+            border: 2px solid #2b2b2b;
+            font-size: 0.8rem;
+        }
+        .recent-event {
+            font-size: 0.8rem;
+            color: #5b4e3f;
+            border-left: 3px dashed #bcab94;
+            padding-left: 10px;
+            margin-top: 4px;
+        }
+
+        /* Tab bar */
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: transparent;
+            margin-bottom: 4px;
+        }
+        .tab {
+            background: #e7ddce;
+            border: 3px solid #2b2b2b;
+            padding: 8px 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 4px 4px 0 #6b5f4f;
+            cursor: pointer;
+            transition: 0.05s linear;
+            flex: 1 0 auto;
+            text-align: center;
+        }
+        .tab.active {
+            background: #d0c0ab;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #4a4036;
+        }
+        .tab:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #4a4036;
+        }
+
+        /* Tab content container */
+        .tab-content {
+            background-color: #faf2e4;
+            border: 3px solid #2b2b2b;
+            padding: 18px 14px;
+            box-shadow: 5px 5px 0px 0px #8b7a62;
+        }
+
+        /* All tab panes are hidden by default */
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active-pane {
+            display: block;
+        }
+
+        /* ---------- shared styles for lists, folders, etc ---------- */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            border-bottom: 2px dashed #a6957a;
+            padding-bottom: 8px;
+            margin: 16px 0 12px 0;
+        }
+        .section-header:first-of-type {
+            margin-top: 0;
+        }
+
+        /* recents / inbox items */
+        .recent-list, .inbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #efe3d2;
+            border: 2px solid #2b2b2b;
+            padding: 8px 12px;
+            box-shadow: 3px 3px 0 #7f6e59;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .recent-item i {
+            width: 20px;
+            color: #5d4f3d;
+        }
+        .recent-time {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: #6f604c;
+        }
+
+        .inbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #efe3d2;
+            border: 2px solid #2b2b2b;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            box-shadow: 3px 3px 0 #7f6e59;
+            cursor: default;
+            position: relative;
+        }
+        .inbox-item-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .inbox-item-left i {
+            width: 20px;
+            color: #5d4f3d;
+        }
+        .inbox-time {
+            font-size: 0.7rem;
+            color: #6f604c;
+            margin-left: 6px;
+        }
+        .file-icon {
+            cursor: pointer;
+            padding: 4px 8px;
+            border-left: 2px solid #9b8b77;
+            font-weight: bold;
+        }
+        .file-icon:hover {
+            background: #cbbc9f;
+        }
+        .folder-popup {
+            position: absolute;
+            background: #f2e4d2;
+            border: 3px solid #1f1f1f;
+            box-shadow: 6px 6px 0 #6b5f4f;
+            right: 10px;
+            top: 35px;
+            z-index: 100;
+            width: 160px;
+            padding: 8px 4px;
+            display: none;
+        }
+        .folder-popup.show {
+            display: block;
+        }
+        .folder-popup-item {
+            padding: 6px 10px;
+            border-bottom: 1px dashed #aa9b88;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .folder-popup-item:hover {
+            background: #dacfbf;
+        }
+
+        /* binders tree */
+        .folder-tree {
+            margin-left: 6px;
+        }
+        .folder-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 4px;
+            border-bottom: 2px solid #d8cbb8;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .folder-item i {
+            width: 20px;
+            color: #3f3a32;
+        }
+        .nested {
+            margin-left: 28px;
+            border-left: 3px dashed #bbaa92;
+            padding-left: 12px;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0 5px 8px;
+            font-size: 0.85rem;
+            border-left: 2px solid #cbb59b;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        .file-item .dot {
+            width: 10px;
+            height: 10px;
+            background: #ab7e4b;
+            border: 1px solid black;
+        }
+
+        /* generators list (simple cards) */
+        .gen-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .gen-card-small {
+            border: 2px solid black;
+            background: #e7ddce;
+            padding: 12px;
+            box-shadow: 4px 4px 0 #6f604c;
+        }
+        .gen-title {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            border-bottom: 1px dashed #837463;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+
+        /* vault items */
+        .vault-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 2px dashed #cbbaa5;
+            font-size: 0.9rem;
+        }
+
+        /* roles / models / events / community placeholders */
+        .placeholder-pane {
+            padding: 12px 0;
+            color: #3f3a32;
+        }
+        .placeholder-pane i {
+            margin-right: 8px;
+        }
+
+        /* main panel (unchanged) */
+        .main-panel {
+            flex: 1;
+            background-color: #faf2e4;
+            border: 4px solid #222;
+            box-shadow: 8px 8px 0px #7b6d5b;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 3px dashed #af9d86;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+        }
+        .main-header h2 {
+            font-size: 1.6rem;
+            font-weight: normal;
+            text-transform: uppercase;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .pocket-view {
+            background: #e2d5c2;
+            border: 3px solid black;
+            padding: 24px;
+            box-shadow: 6px 6px 0 #766a59;
+        }
+        .message-card {
+            border: 2px solid black;
+            background: #f3e9db;
+            padding: 20px;
+            box-shadow: 4px 4px 0 #857863;
+        }
+        .small-note {
+            font-size: 0.8rem;
+            color: #655a4c;
+            border-left: 3px solid #9f907b;
+            padding-left: 12px;
+            margin-top: 16px;
+        }
+        .gen-tag {
+            background: #2b2b2b;
+            color: #eee0cd;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <!-- Pulse (always on top) -->
+        <div class="pulse" id="pulseBox">
+            <div class="pulse-content">
+                <div class="generator-status">
+                    <i class="fas fa-bolt" style="color: #a5661b;"></i>
+                    <span>Generators:</span>
+                    <span class="badge">3 active</span>
+                </div>
+                <div class="recent-event">
+                    <i class="far fa-clock"></i> Morning Briefing added 15m ago
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <div class="tab active" data-tab="pockets">POCKETS</div>
+            <div class="tab" data-tab="vault">VAULT</div>
+            <div class="tab" data-tab="roles">ROLES</div>
+            <div class="tab" data-tab="models">MODELS</div>
+            <div class="tab" data-tab="events">EVENTS</div>
+            <div class="tab" data-tab="community">COMMUNITY</div>
+        </div>
+
+        <!-- Tab content container -->
+        <div class="tab-content">
+            <!-- POCKETS pane (contains recents, inbox, binders, generators) -->
+            <div class="tab-pane active-pane" id="pockets-pane">
+                <!-- Recents -->
+                <div class="section-header">
+                    <span><i class="fas fa-history"></i> RECENTS</span>
+                </div>
+                <div class="recent-list">
+                    <div class="recent-item" data-pocket="Morning Briefing">
+                        <i class="fas fa-newspaper"></i> Morning Briefing
+                        <span class="recent-time">8:32 AM</span>
+                    </div>
+                    <div class="recent-item" data-pocket="Weekly review">
+                        <i class="fas fa-robot"></i> Weekly review
+                        <span class="recent-time">7:15 AM</span>
+                    </div>
+                    <div class="recent-item" data-pocket="Q3 notes">
+                        <i class="fas fa-file-alt"></i> Q3 notes
+                        <span class="recent-time">yesterday</span>
+                    </div>
+                    <div class="recent-item" data-pocket="Polaroid clipping">
+                        <i class="fas fa-image"></i> Polaroid clipping
+                        <span class="recent-time">yesterday</span>
+                    </div>
+                </div>
+
+                <!-- Inbox -->
+                <div class="section-header">
+                    <span><i class="fas fa-inbox"></i> INBOX (3)</span>
+                    <span><i class="fas fa-sync-alt"></i> <i class="fas fa-plus" style="margin-left: 10px;"></i></span>
+                </div>
+                <div class="inbox-list">
+                    <div class="inbox-item" id="inbox1">
+                        <div class="inbox-item-left">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Morning Briefing</span>
+                            <span class="inbox-time">8:32 AM</span>
+                        </div>
+                        <div class="file-icon" data-inbox="inbox1">→</div>
+                        <div class="folder-popup" id="popup1">
+                            <div class="folder-popup-item" data-folder="projects">Projects</div>
+                            <div class="folder-popup-item" data-folder="research">Research</div>
+                            <div class="folder-popup-item" data-folder="archive">Archive</div>
+                        </div>
+                    </div>
+                    <div class="inbox-item" id="inbox2">
+                        <div class="inbox-item-left">
+                            <i class="fas fa-robot"></i>
+                            <span>Weekly review</span>
+                            <span class="inbox-time">7:15 AM</span>
+                        </div>
+                        <div class="file-icon" data-inbox="inbox2">→</div>
+                        <div class="folder-popup" id="popup2">
+                            <div class="folder-popup-item" data-folder="projects">Projects</div>
+                            <div class="folder-popup-item" data-folder="research">Research</div>
+                            <div class="folder-popup-item" data-folder="archive">Archive</div>
+                        </div>
+                    </div>
+                    <div class="inbox-item" id="inbox3">
+                        <div class="inbox-item-left">
+                            <i class="fas fa-image"></i>
+                            <span>Polaroid clipping</span>
+                            <span class="inbox-time">yesterday</span>
+                        </div>
+                        <div class="file-icon" data-inbox="inbox3">→</div>
+                        <div class="folder-popup" id="popup3">
+                            <div class="folder-popup-item" data-folder="projects">Projects</div>
+                            <div class="folder-popup-item" data-folder="research">Research</div>
+                            <div class="folder-popup-item" data-folder="archive">Archive</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Binders -->
+                <div class="section-header">
+                    <span><i class="fas fa-folder-open"></i> BINDERS</span>
+                    <span><i class="fas fa-plus"></i></span>
+                </div>
+                <div class="folder-tree">
+                    <div class="folder-item" data-folder="Projects">
+                        <i class="fas fa-caret-down"></i> <i class="fas fa-folder"></i> Projects
+                    </div>
+                    <div class="nested">
+                        <div class="file-item" data-pocket="AI Daily Briefing">
+                            <span class="dot"></span> AI Daily Briefing
+                        </div>
+                        <div class="folder-item" data-folder="Research">
+                            <i class="fas fa-caret-right"></i> <i class="fas fa-folder"></i> Research
+                        </div>
+                        <div class="file-item" data-pocket="Q3 notes" style="margin-left: 28px;">
+                            <span class="dot" style="background:#966b3e;"></span> Q3 notes
+                        </div>
+                    </div>
+                    <div class="folder-item" data-folder="Archive">
+                        <i class="fas fa-caret-right"></i> <i class="fas fa-folder"></i> Archive
+                    </div>
+                </div>
+
+                <!-- Generators (simplified list) -->
+                <div class="section-header">
+                    <span><i class="fas fa-cogs"></i> GENERATORS</span>
+                    <span><i class="fas fa-plus"></i></span>
+                </div>
+                <div class="gen-list">
+                    <div class="gen-card-small">
+                        <div class="gen-title"><span>Morning Briefing</span> <span class="badge">active</span></div>
+                        <div>⏱ Every weekday 8:30 AM</div>
+                    </div>
+                    <div class="gen-card-small">
+                        <div class="gen-title"><span>Evening Recap</span> <span class="badge">paused</span></div>
+                        <div>⏱ Daily 8:00 PM</div>
+                    </div>
+                    <div class="gen-card-small">
+                        <div class="gen-title"><span>Invoice monitor</span> <span class="badge">event</span></div>
+                        <div>⚡ When Vault updated</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VAULT pane -->
+            <div class="tab-pane" id="vault-pane">
+                <div class="section-header">
+                    <span>VAULT</span>
+                    <span><i class="fas fa-upload"></i> <i class="fas fa-folder-plus" style="margin-left: 10px;"></i></span>
+                </div>
+                <div class="vault-item"><i class="fas fa-folder"></i> Source Docs</div>
+                <div class="vault-item" style="margin-left: 20px;"><i class="far fa-file-pdf"></i> Q3_Report.pdf</div>
+                <div class="vault-item" style="margin-left: 20px;"><i class="far fa-folder"></i> Images</div>
+                <div class="vault-item"><i class="far fa-file-code"></i> project_notes.md</div>
+                <div class="vault-item"><i class="far fa-image"></i> polaroid_scan.jpg</div>
+            </div>
+
+            <!-- ROLES pane (placeholder) -->
+            <div class="tab-pane" id="roles-pane">
+                <div class="section-header">ROLES</div>
+                <div class="placeholder-pane">
+                    <i class="fas fa-masks-theater"></i> Role library & programmer will appear here.<br>
+                    <span style="display:inline-block; margin-top:12px;">• Default assistant<br>• News aggregator<br>• Code reviewer</span>
+                </div>
+            </div>
+
+            <!-- MODELS pane (placeholder) -->
+            <div class="tab-pane" id="models-pane">
+                <div class="section-header">MODELS</div>
+                <div class="placeholder-pane">
+                    <i class="fas fa-brain"></i> Model configuration & leaderboard.<br>
+                    <span style="display:inline-block; margin-top:12px;">Weak: Gemini-1.5-Flash<br>Strong: GPT-4o<br>Local: Llama-3</span>
+                </div>
+            </div>
+
+            <!-- EVENTS pane (placeholder) -->
+            <div class="tab-pane" id="events-pane">
+                <div class="section-header">EVENTS</div>
+                <div class="placeholder-pane">
+                    <i class="fas fa-bolt"></i> Global and pocket event hooks.<br>
+                    <span style="display:inline-block; margin-top:12px;">• On vault update → generate invoice summary<br>• Every Monday → run weekly review</span>
+                </div>
+            </div>
+
+            <!-- COMMUNITY pane (placeholder) -->
+            <div class="tab-pane" id="community-pane">
+                <div class="section-header">COMMUNITY</div>
+                <div class="placeholder-pane">
+                    <i class="fas fa-globe"></i> Community roles, blocks, generators.<br>
+                    <span style="display:inline-block; margin-top:12px;">• Featured: "Minimal Writer"<br>• Trending blocks</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN PANEL (same as before) -->
+    <div class="main-panel" id="mainPanel">
+        <div class="main-header">
+            <h2 id="mainTitle">Pocket · Morning Briefing</h2>
+            <div><i class="fas fa-ellipsis-h"></i></div>
+        </div>
+        <div class="main-content" id="mainContent">
+            <div class="pocket-view">
+                <div class="card-stack">
+                    <div class="message-card">
+                        <strong><i class="far fa-newspaper"></i> Top stories</strong>
+                        <p style="margin-top: 12px;">• Global tech · LLM costs drop<br>• Polaroid exhibition opens<br>• New generator: "Evening recap"</p>
+                        <div style="border-top: 2px dashed #ab9b87; margin-top: 16px; padding-top: 12px;">
+                            <span class="gen-tag">weak:flash</span> <span class="gen-tag">strong:gpt-4o</span>
+                        </div>
+                    </div>
+                    <div style="border:2px solid black; padding:16px; background:#e4d7c4;">
+                        <i class="fas fa-image"></i> Polaroid snapshot placeholder
+                    </div>
+                </div>
+                <div class="small-note">
+                    <i class="fas fa-sync-alt"></i> REFRESH · last updated 8:32 AM
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // --- TAB SWITCHING ---
+        const tabs = document.querySelectorAll('.tab');
+        const panes = {
+            pockets: document.getElementById('pockets-pane'),
+            vault: document.getElementById('vault-pane'),
+            roles: document.getElementById('roles-pane'),
+            models: document.getElementById('models-pane'),
+            events: document.getElementById('events-pane'),
+            community: document.getElementById('community-pane')
+        };
+
+        function activateTab(tabId) {
+            // update tab active class
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+            // update pane visibility
+            Object.values(panes).forEach(pane => pane.classList.remove('active-pane'));
+            panes[tabId].classList.add('active-pane');
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                activateTab(tabId);
+            });
+        });
+
+        // --- FILING POPUPS (inbox items) ---
+        const fileIcons = document.querySelectorAll('.file-icon');
+        fileIcons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const inboxItem = icon.closest('.inbox-item');
+                const popup = inboxItem.querySelector('.folder-popup');
+                document.querySelectorAll('.folder-popup').forEach(p => p.classList.remove('show'));
+                if (popup) popup.classList.toggle('show');
+            });
+        });
+
+        const folderItems = document.querySelectorAll('.folder-popup-item');
+        folderItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const popup = item.closest('.folder-popup');
+                const inboxItem = popup.closest('.inbox-item');
+                if (inboxItem) {
+                    inboxItem.style.display = 'none';
+                    // update inbox count in the active pane
+                    const inboxHeader = document.querySelector('#pockets-pane .section-header span:first-child');
+                    if (inboxHeader && inboxHeader.innerHTML.includes('INBOX')) {
+                        let match = inboxHeader.innerHTML.match(/\((\d+)\)/);
+                        if (match) {
+                            let count = parseInt(match[1]) - 1;
+                            inboxHeader.innerHTML = `<i class="fas fa-inbox"></i> INBOX (${count})`;
+                        }
+                    }
+                }
+                popup.classList.remove('show');
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('file-icon')) {
+                document.querySelectorAll('.folder-popup').forEach(p => p.classList.remove('show'));
+            }
+        });
+
+        // --- OPEN POCKET IN MAIN PANEL ---
+        function openPocket(title, contentPreview) {
+            document.getElementById('mainTitle').innerText = `Pocket · ${title}`;
+            document.getElementById('mainContent').innerHTML = `
+                <div class="pocket-view">
+                    <div class="card-stack">
+                        <div class="message-card">
+                            <strong><i class="far fa-file"></i> ${title}</strong>
+                            <p style="margin-top:12px;">${contentPreview || 'Content from this pocket.'}</p>
+                        </div>
+                    </div>
+                    <div class="small-note"><i class="fas fa-tag"></i> #demo · opened from sidebar</div>
+                </div>
+            `;
+        }
+
+        // recents
+        document.querySelectorAll('.recent-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const title = el.getAttribute('data-pocket') || el.innerText.split('\n')[0].trim();
+                openPocket(title, 'This pocket was recently accessed.');
+            });
+        });
+
+        // inbox items (left part)
+        document.querySelectorAll('.inbox-item-left').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const inboxItem = el.closest('.inbox-item');
+                const titleSpan = inboxItem.querySelector('.inbox-item-left span');
+                const title = titleSpan ? titleSpan.innerText : 'Generated pocket';
+                openPocket(title, 'This is a generated pocket from the inbox.');
+            });
+        });
+
+        // binder files
+        document.querySelectorAll('.file-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const title = el.getAttribute('data-pocket') || el.innerText.trim();
+                openPocket(title, 'This pocket is filed in a binder.');
+            });
+        });
+
+        // binder folders (just show folder preview)
+        document.querySelectorAll('.folder-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const folderName = el.getAttribute('data-folder') || el.innerText.trim();
+                document.getElementById('mainTitle').innerText = `Binder · ${folderName}`;
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="pocket-view">
+                        <div class="card-stack">
+                            <div class="message-card">
+                                <strong><i class="fas fa-folder-open"></i> ${folderName}</strong>
+                                <p style="margin-top:12px;">This folder contains pockets. Click a file to open.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+        // Pulse click -> switch to POCKETS tab and maybe highlight generators?
+        document.getElementById('pulseBox').addEventListener('click', () => {
+            activateTab('pockets');
+            // optional: scroll to generators section? not needed.
+        });
+    })();
+</script>
+</body>
+</html>
