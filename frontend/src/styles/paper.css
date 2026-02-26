@@ -1,0 +1,101 @@
+@import './tokens.css';
+
+/* Additional paper textures for specific elements */
+
+/* Torn paper effect */
+.paper-torn {
+  position: relative;
+  background: var(--paper-cream);
+  border: none;
+}
+
+.paper-torn::before,
+.paper-torn::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: inherit;
+}
+
+.paper-torn::before {
+  top: -4px;
+  clip-path: polygon(0% 0%, 100% 0%, 98% 100%, 2% 100%);
+}
+
+.paper-torn::after {
+  bottom: -4px;
+  clip-path: polygon(0% 0%, 100% 0%, 98% 100%, 2% 100%);
+  transform: rotate(180deg);
+}
+
+/* Folded corner effect */
+.paper-fold {
+  position: relative;
+  background: var(--paper-ivory);
+}
+
+.paper-fold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 20px solid var(--paper-kraft);
+  border-left: 20px solid transparent;
+}
+
+/* Stamped effect */
+.paper-stamp {
+  position: relative;
+  border: var(--border-medium);
+  padding: var(--space-md);
+}
+
+.paper-stamp::before {
+  content: '●';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  font-size: 20px;
+  color: var(--accent-oxblood);
+  opacity: 0.5;
+  transform: rotate(15deg);
+}
+
+/* Aged spots (foxing) */
+.paper-aged {
+  position: relative;
+}
+
+.paper-aged::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 30%, rgba(101, 67, 33, 0.05) 0%, transparent 30%),
+              radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* Sticky note effect */
+.paper-sticky {
+  transform: rotate(-0.5deg);
+  background: var(--pastel-peach);
+  border: var(--border-medium);
+  box-shadow: var(--depth-offset) var(--depth-offset) 0 var(--depth-color);
+}
+
+/* Typewriter margin lines */
+.paper-lined {
+  background: repeating-linear-gradient(
+    var(--paper-cream) 0px,
+    var(--paper-cream) 28px,
+    var(--ink-faint) 29px,
+    var(--paper-cream) 30px
+  );
+}
