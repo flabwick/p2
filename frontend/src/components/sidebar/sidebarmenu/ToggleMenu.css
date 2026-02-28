@@ -1,0 +1,71 @@
+/* ===============================================
+   TOGGLE MENU COMPONENT STYLES
+   Based on version 1 globals.css styling
+   =============================================== */
+
+.toggle-menu {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-medium);
+  background: var(--paper-kraft);
+  gap: 4px;
+}
+
+.toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: var(--border-medium);
+  border-radius: 2px;
+  background: var(--paper-ivory);
+  color: var(--ink-medium);
+  cursor: pointer;
+  transition: all var(--transition-physical);
+  padding: 0;
+  flex: 1;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  position: relative;
+}
+
+.toggle-button:hover {
+  background: var(--paper-cream);
+  color: var(--ink-dark);
+  transform: translate(-1px, -1px);
+  border-color: var(--accent-deep-teal);
+}
+
+.toggle-button:active {
+  transform: translate(1px, 1px);
+}
+
+.toggle-button.active {
+  background: var(--accent-deep-teal);
+  color: var(--paper-ivory);
+  border-color: var(--accent-deep-teal);
+}
+
+.toggle-button.active:hover {
+  background: var(--accent-deep-teal);
+  opacity: 0.9;
+  transform: translate(-1px, -1px);
+}
+
+.toggle-button svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.toggle-button:hover svg {
+  color: var(--accent-deep-teal);
+}
+
+.toggle-button.active svg {
+  color: var(--paper-ivory);
+}

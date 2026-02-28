@@ -3,302 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>paper icons · vault · pocket · desk · feed · log</title>
+    <title>Pocket Icon Showcase</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background-color: #f5efe6;  /* antique oatmeal */
-            font-family: 'Courier New', Courier, 'IBM Plex Mono', monospace;
-            padding: 3rem 2rem;
-            color: #1e1e1e;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* bento grid – large margins, intentional dead space */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 3rem 2rem;
-            margin: 4rem 0;
-            justify-items: center;
-            align-items: start;
-        }
-
-        /* paper card – sharp, brutalist, no rounding */
-        .paper-card {
-            position: relative;
-            width: 100%;
-            max-width: 220px;
-            background: #fcf9f2;        /* light cardstock */
-            border: 4px solid #1e1e1e;
-            padding: 2.5rem 1rem 1.8rem 1rem;
-            text-align: center;
-            transition: all 0.1s ease;
-            isolation: isolate;
-            box-shadow: none;
-        }
-
-        /* 2D depth block – no blur, just offset */
-        .paper-card::before {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100%;
-            height: 100%;
-            background-color: #c9b9a8;  /* aged taupe */
-            border: 4px solid #1e1e1e;
-            z-index: -1;
-            transition: all 0.1s ease;
-        }
-
-        /* each card gets slightly staggered offset – like messy paper stack */
-        .paper-card:nth-child(1)::before { top: 12px; left: 6px; background-color: #b7aa9a; }
-        .paper-card:nth-child(2)::before { top: 6px; left: 14px; background-color: #dacbb8; }
-        .paper-card:nth-child(3)::before { top: 14px; left: 8px; background-color: #c0b0a0; }
-        .paper-card:nth-child(4)::before { top: 8px; left: 12px; background-color: #b7a48f; }
-        .paper-card:nth-child(5)::before { top: 12px; left: 10px; background-color: #d2c1ad; }
-
-        /* physical press – moves down/right, background shifts */
-        .paper-card:active {
-            transform: translate(4px, 4px);
-        }
-        .paper-card:active::before {
-            top: 2px;
-            left: 2px;
-        }
-
-        /* icon container */
-        .icon-box {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 1.5rem auto;
+            background-color: #fcfcfc;
+            color: #333;
+            font-family: sans-serif;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
 
-        /* all icons – sharp square caps, bold lines */
-        .icon-box svg {
-            width: 100%;
-            height: 100%;
-            stroke: #1e1e1e;
-            stroke-width: 5;
-            stroke-linecap: square;      /* squared, like cut paper */
-            stroke-linejoin: miter;
-            fill: none;
+        h1 {
+            margin-bottom: 40px;
+            color: #555;
         }
 
-        /* label – chunky, squared, brutalist */
-        .label {
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            background: #fcf9f2;
-            display: inline-block;
-            padding: 0.4rem 1.2rem;
-            border: 4px solid #1e1e1e;
-            margin-top: 0.5rem;
-            color: #1e1e1e;
-        }
-
-        /* header with bento spacing */
-        .title-block {
-            border-bottom: 5px solid #1e1e1e;
-            padding-bottom: 1.8rem;
-            margin-bottom: 3rem;
+        .icon-container {
             display: flex;
-            align-items: baseline;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-        .title-block h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: #fcf9f2;
-            border: 5px solid #1e1e1e;
-            padding: 0.5rem 2rem 0.2rem 2rem;
-            display: inline-block;
-            text-transform: uppercase;
-        }
-        .title-block p {
-            font-size: 1.3rem;
-            border-left: 5px solid #1e1e1e;
-            padding-left: 1.8rem;
-            color: #3a2e28;
+            gap: 60px;
+            margin-bottom: 60px;
         }
 
-        /* dead space / bento detail */
-        .divider-dash {
-            width: 100%;
-            height: 5px;
-            background: repeating-linear-gradient(90deg, #1e1e1e, #1e1e1e 15px, transparent 15px, transparent 30px);
-            margin: 3rem 0 2rem 0;
-        }
-
-        .connector-row {
+        .icon-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.8rem;
-            margin: 2rem 0 3rem 0;
-            font-size: 1rem;
-            text-transform: uppercase;
-        }
-        .dashed-line {
-            border-bottom: 5px dashed #1e1e1e;
-            width: 80px;
-            height: 5px;
-        }
-        .square-bullet {
-            width: 16px;
-            height: 16px;
-            border: 4px solid #1e1e1e;
-            background: #fcf9f2;
+            border: 1px solid #eaeaea;
+            transition: transform 0.2s ease-in-out;
         }
 
-        .footnote {
-            margin-top: 5rem;
-            border-top: 5px dashed #1e1e1e;
-            padding-top: 2rem;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-            text-transform: uppercase;
-            color: #3a2e28;
+        .icon-card:hover {
+            transform: translateY(-5px);
         }
 
-        /* small stationery tag */
-        .paper-tag {
-            border: 4px solid #1e1e1e;
-            padding: 0.5rem 1.5rem;
-            background: #fcf9f2;
-            display: inline-block;
-            font-weight: bold;
+        .icon-card h3 {
+            margin-top: 20px;
+            color: #777;
+            font-weight: normal;
+        }
+
+        .icon-card p {
+            color: #999;
+            font-size: 0.9em;
+            max-width: 180px;
+            text-align: center;
+        }
+
+        /* Basic SVG styling within the page */
+        svg {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- header -->
-        <div class="title-block">
-            <h1>PAPER·CUT</h1>
-            <p>five icons · square strokes · neo‑brutalist</p>
+
+    <h1>Refined Pocket Icon Options</h1>
+
+    <div class="icon-container">
+
+        <div class="icon-card">
+            <svg version="1.1" id="pocket-classic" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                 x="0px" y="0px" width="96px" height="96px" viewBox="0 0 96 96" enable-background="new 0 0 96 96" xml:space="preserve">
+            <g>
+                <path fill="#8a8a8a" d="M80,84H16c-4.4,0-8-3.6-8-8V19c0-1.7,1.3-3,3-3h70c1.7,0,3,1.3,3,3v57C88,80.4,84.4,84,80,84z M14,76
+                    c0,1.1,0.9,2,2,2h64c1.1,0,2-0.9,2-2V22H14V76z"/>
+                <path fill="#fcfcfc" d="M11,19h74v57H11V19z M17,25v48c0,1.1,0.9,2,2,2h58c1.1,0,2-0.9,2-2V25H17z" />
+                <g>
+                    <path fill="#8a8a8a" d="M12.5,45h71c0.8,0,1.5-0.7,1.5-1.5v-25C85,17.7,84.3,17,83.5,17h-71C11.7,17,11,17.7,11,18.5v25
+                        C11,44.3,11.7,45,12.5,45z M17,23h62v16H17V23z"/>
+                    <path fill="#8a8a8a" d="M83.5,41H12.5c-1.9,0-3.5-1.6-3.5-3.5v-19C9,16.6,10.6,15,12.5,15h71c1.9,0,3.5,1.6,3.5,3.5v19
+                        C87,39.4,85.4,41,83.5,41z M12.5,19c-0.3,0-0.5,0.2-0.5,0.5v18c0,0.3,0.2,0.5,0.5,0.5h71c0.3,0,0.5-0.2,0.5-0.5v-18
+                        C84,19.2,83.8,19,83.5,19H12.5z"/>
+                    <circle fill="#8a8a8a" cx="48" cy="30" r="5.5"/>
+                    <circle fill="#fcfcfc" cx="48" cy="30" r="2.5"/>
+                    <path fill="#8a8a8a" d="M48,46h-1c0,0-17.5-3.5-17.5-18.5c0-0.8,0.7-1.5,1.5-1.5s1.5,0.7,1.5,1.5c0,12.3,13.6,15.1,15,15.3
+                        c1.4-0.2,15-3.1,15-15.3c0-0.8,0.7-1.5,1.5-1.5s1.5,0.7,1.5,1.5c0,15-17.5,18.5-17.5,18.5C49,46,48.5,46,48,46z"/>
+                </g>
+            </g>
+            </svg>
+            <h3>Option 1</h3>
+            <p>Refined Classic. Based on image_0, with optimized curves and a clean structure.</p>
         </div>
 
-        <!-- icon grid – exactly 5 cards -->
-        <div class="grid">
-            <!-- VAULT -->
-            <div class="paper-card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 100 100">
-                        <rect x="18" y="20" width="64" height="60" />
-                        <circle cx="72" cy="50" r="10" />
-                    </svg>
-                </div>
-                <div class="label">VAULT</div>
-            </div>
-
-            <!-- POCKET -->
-            <div class="paper-card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 100 100">
-                        <rect x="20" y="30" width="60" height="45" />
-                        <line x1="20" y1="30" x2="35" y2="18" />
-                        <line x1="80" y1="30" x2="65" y2="18" />
-                    </svg>
-                </div>
-                <div class="label">POCKET</div>
-            </div>
-
-            <!-- DESK -->
-            <div class="paper-card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 100 100">
-                        <line x1="10" y1="45" x2="90" y2="45" stroke-width="6" />
-                        <line x1="30" y1="45" x2="30" y2="80" />
-                        <line x1="70" y1="45" x2="70" y2="80" />
-                    </svg>
-                </div>
-                <div class="label">DESK</div>
-            </div>
-
-            <!-- FEED -->
-            <div class="paper-card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 100 100">
-                        <line x1="20" y1="30" x2="80" y2="30" stroke-width="5" />
-                        <line x1="20" y1="50" x2="80" y2="50" stroke-width="5" />
-                        <line x1="20" y1="70" x2="80" y2="70" stroke-width="5" />
-                    </svg>
-                </div>
-                <div class="label">FEED</div>
-            </div>
-
-            <!-- LOG (with square binding notches) -->
-            <div class="paper-card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 100 100">
-                        <rect x="25" y="20" width="55" height="65" />
-                        <rect x="20" y="28" width="8" height="8" />
-                        <rect x="20" y="48" width="8" height="8" />
-                        <rect x="20" y="68" width="8" height="8" />
-                    </svg>
-                </div>
-                <div class="label">LOG</div>
-            </div>
+        <div class="icon-card">
+            <svg version="1.1" id="pocket-chevron" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                 x="0px" y="0px" width="96px" height="96px" viewBox="0 0 96 96" enable-background="new 0 0 96 96" xml:space="preserve">
+            <g>
+                <path fill="#8a8a8a" d="M80,84H16c-4.4,0-8-3.6-8-8V19c0-1.7,1.3-3,3-3h70c1.7,0,3,1.3,3,3v57C88,80.4,84.4,84,80,84z M14,76
+                    c0,1.1,0.9,2,2,2h64c1.1,0,2-0.9,2-2V22H14V76z"/>
+                <path fill="#fcfcfc" d="M11,19h74v57H11V19z M17,25v48c0,1.1,0.9,2,2,2h58c1.1,0,2-0.9,2-2V25H17z" />
+                <g>
+                    <polygon fill="#8a8a8a" points="12.5,46 48,60 83.5,46 83.5,17 12.5,17"/>
+                    <circle fill="#8a8a8a" cx="48" cy="30" r="5.5"/>
+                    <circle fill="#fcfcfc" cx="48" cy="30" r="2.5"/>
+                    <polyline fill="none" stroke="#8a8a8a" stroke-width="3" points="12.5,46 48,60 83.5,46"/>
+                    <line fill="none" stroke="#8a8a8a" stroke-width="3" x1="12.5" y1="17" x2="83.5" y2="17"/>
+                    <polygon fill="#fcfcfc" points="15.5,44 48,56.5 80.5,44 80.5,20 15.5,20"/>
+                </g>
+            </g>
+            </svg>
+            <h3>Option 2</h3>
+            <p>Geometric Chevron. Refined variation of image_1 with a deeper, more defined flap angle.</p>
         </div>
 
-        <!-- bento spacing / dead space / connector hints -->
-        <div class="divider-dash"></div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0;">
-            <div class="connector-row">
-                <span class="square-bullet"></span>
-                <span class="dashed-line"></span>
-                <span style="font-weight: bold; border: 4px solid #1e1e1e; padding: 0.3rem 1rem; background: #fcf9f2;">DOCK</span>
-                <span class="dashed-line"></span>
-                <span class="square-bullet"></span>
-            </div>
-            <div class="paper-tag">STAGGERED · 2D DEPTH</div>
+        <div class="icon-card">
+            <svg version="1.1" id="pocket-minimal" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+                 x="0px" y="0px" width="96px" height="96px" viewBox="0 0 96 96" enable-background="new 0 0 96 96" xml:space="preserve">
+            <g>
+                <path fill="#8a8a8a" d="M80,84H16c-4.4,0-8-3.6-8-8V19c0-1.7,1.3-3,3-3h70c1.7,0,3,1.3,3,3v57C88,80.4,84.4,84,80,84z M14,76
+                    c0,1.1,0.9,2,2,2h64c1.1,0,2-0.9,2-2V22H14V76z"/>
+                <g>
+                    <polyline fill="none" stroke="#8a8a8a" stroke-width="3" points="83.5,17 83.5,35 12.5,35 12.5,17"/>
+                    <path fill="none" stroke="#8a8a8a" stroke-width="3" d="M83.5,17l3.5,3.5v11L83.5,35"/>
+                    <line fill="none" stroke="#8a8a8a" stroke-width="3" x1="12.5" y1="17" x2="16" y2="20.5"/>
+                    <line fill="none" stroke="#8a8a8a" stroke-width="3" x1="12.5" y1="35" x2="16" y2="31.5"/>
+                    <circle fill="#8a8a8a" cx="48" cy="26" r="5.5"/>
+                    <circle fill="#fcfcfc" cx="48" cy="26" r="2.5"/>
+                </g>
+            </g>
+            </svg>
+            <h3>Option 3</h3>
+            <p>Minimal Fold. New refined concept focusing on clean lines and a simple button accent.</p>
         </div>
 
-        <!-- mini bento row showing grouping -->
-        <div style="border: 5px solid #1e1e1e; padding: 2rem; background: #f3eadc; margin: 3rem 0;">
-            <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
-                <div style="border: 5px solid #1e1e1e; padding: 0.8rem 1.5rem; background: #fcf9f2; font-weight: bold;">📌 DESK</div>
-                <div style="border-bottom: 5px dashed #1e1e1e; width: 60px;"></div>
-                <div style="border: 5px solid #1e1e1e; padding: 0.8rem 1.5rem; background: #fcf9f2; display: flex; gap: 1rem;">
-                    <span>FEED</span>
-                    <span style="border-left: 4px solid #1e1e1e; padding-left: 1rem;">LOG</span>
-                </div>
-                <div style="border-bottom: 5px dashed #1e1e1e; width: 60px;"></div>
-                <div style="border: 5px solid #1e1e1e; padding: 0.8rem 1.5rem; background: #fcf9f2; font-weight: bold;">🗄️ VAULT</div>
-            </div>
-            <p style="margin-top: 2rem; font-size: 1rem; color: #5a4a3a; border-left: 5px solid #1e1e1e; padding-left: 1.5rem;">
-                // large margins · dead space · square strokes · paper on paper
-            </p>
-        </div>
-
-        <!-- footer with tactile reminder -->
-        <div class="footnote">
-            <span>◈ SQUARE · STACK · PRESS ◈</span>
-            <span class="dashed-line" style="width: 120px;"></span>
-            <span>tap for physical click</span>
-        </div>
-        <p style="margin-top: 2rem; font-size: 0.9rem; border-left: 5px solid #1e1e1e; padding-left: 1.2rem;">
-            ⇣ each card moves 4px down/right when pressed — like stamping into paper
-        </p>
     </div>
+
+    <p style="color: #999; font-size: 0.8em; margin-top: 50px;">Use the code above in your project. All icons are 96x96 pixels and use hex color <code>#8A8A8A</code>.</p>
+
 </body>
 </html>

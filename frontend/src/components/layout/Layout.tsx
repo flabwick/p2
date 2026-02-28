@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Header } from './Header'
-import { MainPanel } from './MainPanel'
-import { SidebarMaster } from './SidebarMaster'
+import { MainPanel } from '../mainpanel/MainPanel'
+import { Sidebar } from '../sidebar'
 import './Layout.css'
 
 interface LayoutProps {
@@ -9,30 +8,36 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const [activeView, setActiveView] = useState<'desk' | 'feed' | 'log'>('desk')
   const [isMenuExpanded, setIsMenuExpanded] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(320)
+
+  const handleMenuToggle = () => {
+    setIsMenuExpanded(!isMenuExpanded)
+  }
+
+  const handleSidebarWidthChange = (width: number) => {
+    setSidebarWidth(width)
+  }
 
   return (
-    <div className="layout-wrapper">
-      <Header
-        activeView={activeView}
-        onMenuToggle={() => setIsMenuExpanded(!isMenuExpanded)}
-        onTabsToggle={() => {}}
+    <div 
+      className={`layout-wrapper ${isMenuExpanded ? 'sidebar-open' : ''}`}
+      style={{
+        marginLeft: isMenuExpanded ? `${sidebarWidth}px` : '0',
+        width: isMenuExpanded ? `calc(100% - ${sidebarWidth}px)` : '100%'
+      }}
+    >
+      <MainPanel
+        onMenuToggle={handleMenuToggle}
         isMenuExpanded={isMenuExpanded}
-        isTabsExpanded={false}
-        onViewChange={setActiveView}
       />
-      <SidebarMaster
-        isMenuExpanded={isMenuExpanded}
-        isTabsExpanded={false}
-      >
-        <MainPanel
-          activeView={activeView}
-          onViewChange={setActiveView}
-        >
-          {children}
-        </MainPanel>
-      </SidebarMaster>
+      
+      <Sidebar 
+        isOpen={isMenuExpanded} 
+        onClose={() => setIsMenuExpanded(false)}
+        onWidthChange={handleSidebarWidthChange}
+        initialWidth={sidebarWidth}
+      />
     </div>
   )
 }

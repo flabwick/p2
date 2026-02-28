@@ -21,6 +21,7 @@
   --ink-medium: #5e5e5e;
   --ink-light: #8a8a8a;
   --ink-faint: #c0c0c0;
+  --border-color: var(--ink-black);
   
   /* =============== PRIMARY ACCENTS ===============
      Bold, confident accent colors

@@ -61,6 +61,12 @@ const mockFiles: FileCard[] = [
   { id: '10', name: 'readme.md', type: 'text/markdown', size: '12 KB', date: '2024-01-06' },
   { id: '11', name: 'archive.zip', type: 'application/zip', size: '15 MB', date: '2024-01-05' },
   { id: '12', name: 'script.js', type: 'text/javascript', size: '34 KB', date: '2024-01-04' },
+  { id: '13', name: 'budget.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', size: '45 KB', date: '2024-01-03' },
+  { id: '14', name: 'backup.sql', type: 'application/sql', size: '1.2 GB', date: '2024-01-02' },
+  { id: '15', name: 'logo-v2.svg', type: 'image/svg+xml', size: '15 KB', date: '2024-01-01', preview: 'image' },
+  { id: '16', name: 'specs-v2.pdf', type: 'application/pdf', size: '3.1 MB', date: '2023-12-31' },
+  { id: '17', name: 'team-photo.png', type: 'image/png', size: '4.5 MB', date: '2023-12-30', preview: 'image' },
+  { id: '18', name: 'todo.txt', type: 'text/plain', size: '1 KB', date: '2023-12-29' },
 ];
 
 const FileCardComponent = ({ file }: { file: FileCard }) => {

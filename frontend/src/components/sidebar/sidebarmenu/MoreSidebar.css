@@ -1,0 +1,95 @@
+/* ===============================================
+   MORE SIDEBAR COMPONENT STYLES
+   Accordion / Stacked Text Dropdowns
+   =============================================== */
+
+.more-sidebar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-ivory);
+}
+
+.more-accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Accordion Headers */
+.accordion-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--paper-kraft);
+  border: none;
+  border-bottom: var(--border-thin);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition-physical);
+  text-align: left;
+}
+
+.accordion-header:hover {
+  background: var(--paper-linen);
+  color: var(--accent-deep-teal);
+}
+
+.accordion-header.active {
+  background: var(--paper-ivory);
+  color: var(--accent-deep-teal);
+  border-bottom: 2px solid var(--accent-deep-teal);
+}
+
+/* Content Area */
+.accordion-content {
+  background: var(--paper-ivory);
+  border-bottom: var(--border-thin);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* List Items */
+.more-list {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xs) 0;
+}
+
+.more-item {
+  padding: var(--space-sm) calc(var(--space-md) + 4px);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-left: 3px solid transparent;
+}
+
+.more-item:hover {
+  background: var(--paper-cream);
+  color: var(--accent-deep-teal);
+  border-left-color: var(--accent-deep-teal);
+  padding-left: calc(var(--space-md) + 8px);
+}
+
+.more-item:active {
+  background: var(--paper-kraft);
+}

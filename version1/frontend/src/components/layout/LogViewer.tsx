@@ -144,6 +144,28 @@ const mockLogEntries: LogEntry[] = [
     source: 'System',
     message: 'Hourly health check passed',
   },
+  {
+    id: '13',
+    timestamp: '2024-01-15 16:15:30',
+    level: 'debug',
+    source: 'UI',
+    message: 'Main panel body wrapper margin applied: 0 var(--space-xl)',
+  },
+  {
+    id: '14',
+    timestamp: '2024-01-15 16:20:45',
+    level: 'info',
+    source: 'Layout',
+    message: 'Margin enforcement confirmed across all viewers',
+  },
+  {
+    id: '15',
+    timestamp: '2024-01-15 16:30:12',
+    level: 'warning',
+    source: 'Performance',
+    message: 'Large log list rendering',
+    details: 'List size: 15 items',
+  },
 ];
 
 const LogEntryRow = ({ entry, expanded, onToggle }: { entry: LogEntry; expanded: boolean; onToggle: () => void }) => {

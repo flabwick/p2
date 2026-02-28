@@ -81,33 +81,35 @@ const Layout = ({ children }: { children?: ReactNode }) => {
               onToggleSidebar={toggleSidebar}
             />
 
-            <div className="panel-content">
-              <Routes>
-                <Route path="/pocket/:id" element={
-                  <MainPanel
-                    view={activeView}
-                    pocketId={activePocketData?.id || 'main'}
-                    pocketName={activePocketData?.name || 'Main Context'}
-                    onFeedStateChange={handleFeedStateChange}
-                  />
-                } />
-                <Route path="/" element={
-                  <MainPanel
-                    view={activeView}
-                    pocketId={activePocketData?.id || 'main'}
-                    pocketName={activePocketData?.name || 'Main Context'}
-                    onFeedStateChange={handleFeedStateChange}
-                  />
-                } />
-              </Routes>
-            </div>
+            <div className="main-panel-body-wrapper">
+              <div className="panel-content">
+                <Routes>
+                  <Route path="/pocket/:id" element={
+                    <MainPanel
+                      view={activeView}
+                      pocketId={activePocketData?.id || 'main'}
+                      pocketName={activePocketData?.name || 'Main Context'}
+                      onFeedStateChange={handleFeedStateChange}
+                    />
+                  } />
+                  <Route path="/" element={
+                    <MainPanel
+                      view={activeView}
+                      pocketId={activePocketData?.id || 'main'}
+                      pocketName={activePocketData?.name || 'Main Context'}
+                      onFeedStateChange={handleFeedStateChange}
+                    />
+                  } />
+                </Routes>
+              </div>
 
-            <Footer 
-              activeView={activeView} 
-              onViewChange={setActiveView}
-              feedState={feedState}
-              onFeedRefresh={handleFeedRefresh}
-            />
+              <Footer 
+                activeView={activeView} 
+                onViewChange={setActiveView}
+                feedState={feedState}
+                onFeedRefresh={handleFeedRefresh}
+              />
+            </div>
           </div>
         </main>
       </div>

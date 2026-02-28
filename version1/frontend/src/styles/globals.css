@@ -207,61 +207,61 @@ pre {
   position: relative;
 }
 
-/* Main panel area - wraps header, panel content and footer with responsive margins */
+/* Main panel area - wraps header and the margined body area */
 .main-panel-area {
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin: var(--space-md);
-  margin-top: 0;
-  gap: var(--space-md);
   min-height: 0;
-  /* Responsive: margin shrinks as sidebar gets wider or viewport gets smaller */
-  margin-right: calc(var(--space-md) + max(0px, var(--sidebar-width, 280px) - 200px) * 0.3);
+  position: relative;
 }
 
-@media (max-width: 1200px) {
-  .main-panel-area {
-    margin-right: calc(var(--space-sm) + max(0px, var(--sidebar-width, 280px) - 200px) * 0.2);
-  }
+/* Margined body area - wraps panel content and footer with invisible but strict margins */
+.main-panel-body-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0; /* Flush with header and bottom */
+  gap: 0; /* No space between elements */
+  min-height: 0;
+  padding: 0 2rem; /* Minimum margin strictly enforced */
+  align-items: center; /* Center children to maintain consistent content width */
 }
 
-@media (max-width: 900px) {
-  .main-panel-area {
-    margin: var(--space-sm);
-    margin-top: 0;
-    margin-right: var(--space-sm);
-  }
-}
-
-/* Header inside main panel area - flush with panel content */
+/* Header inside main panel area - now full-width */
 .main-panel-area .header-container {
   margin: 0;
-  margin-left: 0;
-  margin-right: 0;
-  border-radius: 4px;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-top: none;
 }
 
-/* Footer inside main panel area - floats within margins */
-.main-panel-area .layout-footer {
+/* Footer inside margined body area */
+.main-panel-body-wrapper .layout-footer {
+  width: 100%;
+  max-width: 900px; /* Consistent content width */
   flex-shrink: 0;
-  border-radius: 4px;
-  border: var(--border-medium);
+  border-radius: 0;
+  border: none;
+  border-top: var(--border-thin);
 }
 
-/* Panel content inside main panel area */
-.main-panel-area .panel-content {
+/* Panel content inside margined body area */
+.main-panel-body-wrapper .panel-content {
+  width: 100%;
+  max-width: 900px; /* Consistent content width */
   flex: 1;
   min-height: 0;
-  border-radius: 4px;
-  border: var(--border-medium);
+  border-radius: 0;
+  border: none;
   background: var(--paper-ivory);
   overflow: hidden;
 }
 
 /* Main panel scroll also needs adjustment */
-.main-panel-area .main-panel-scroll {
-  border-radius: 4px;
+.main-panel-body-wrapper .main-panel-scroll {
+  border-radius: 0;
 }
 
 /* Fixed sidebar toggle - MOVED to Header.styles.css */

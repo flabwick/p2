@@ -1,0 +1,48 @@
+/* ===============================================
+   SIDEBAR MAIN COMPONENT STYLES
+   =============================================== */
+
+.sidebar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* Width is now set dynamically via inline style */
+  height: 100%;
+  background-color: var(--paper-ivory);
+  border-right: var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+/* ===============================================
+   RESIZE HANDLE
+   =============================================== */
+
+.sidebar-resize-handle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background-color: transparent;
+  cursor: ew-resize;
+  transition: background-color 0.1s ease;
+  z-index: 1001;
+}
+
+.sidebar-resize-handle:hover {
+  background-color: var(--ink-light);
+}
+
+.sidebar-resize-handle:active {
+  background-color: var(--ink-medium);
+}
+
+/* Responsive adjustments - width is now handled dynamically in the component */
+@media (max-width: 480px) {
+  .sidebar-resize-handle {
+    display: none;
+  }
+}

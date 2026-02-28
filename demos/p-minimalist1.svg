@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+  <!-- Pocket body -->
+  <path d="M 15 58 L 15 92 Q 15 118 60 125 Q 105 118 105 92 L 105 58 Z"
+        fill="none" stroke="#333" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Flap: smooth arch curving down to central point -->
+  <path d="M 15 58 Q 15 34 60 47 Q 105 34 105 58 Q 82 73 60 79 Q 38 73 15 58 Z"
+        fill="white" stroke="#333" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- White mask circle to clear flap stroke beneath button -->
+  <circle cx="60" cy="79" r="8.5" fill="white"/>
+
+  <!-- Button circle drawn on top, clean -->
+  <circle cx="60" cy="79" r="6.5" fill="white" stroke="#333" stroke-width="3.5"/>
+</svg>

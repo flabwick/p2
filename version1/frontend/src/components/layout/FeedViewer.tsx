@@ -225,6 +225,58 @@ const mockFeedState: FeedState = {
         },
       ],
     },
+    {
+      id: 'card-2',
+      blocks: [
+        {
+          id: 'block-2-1',
+          type: 'text',
+          value: 'Margin Enforcement Test Card',
+          isEditable: false,
+        },
+        {
+          id: 'block-2-2',
+          type: 'code',
+          label: 'Current CSS State',
+          value: '.main-panel-body-wrapper {\n  padding: 0 var(--space-xl);\n}',
+          isEditable: false,
+        },
+      ],
+    },
+    {
+      id: 'card-3',
+      blocks: [
+        {
+          id: 'block-3-1',
+          type: 'text',
+          value: 'Please confirm your preferences:',
+          isEditable: false,
+        },
+        {
+          id: 'block-3-2',
+          type: 'multi-select',
+          label: 'Preferences',
+          value: ['dark-mode'],
+          options: [
+            { label: 'Dark Mode', value: 'dark-mode' },
+            { label: 'Notifications', value: 'notifications' },
+            { label: 'Auto-save', value: 'auto-save' },
+          ],
+          isEditable: true,
+        },
+      ],
+    },
+    {
+      id: 'card-4',
+      blocks: [
+        {
+          id: 'block-4-1',
+          type: 'text',
+          value: 'This is a long card to test scrolling and margin enforcement. The horizontal padding var(--space-xl) should be clearly visible on the sides of this card.',
+          isEditable: false,
+        },
+      ],
+    },
   ],
 };
 

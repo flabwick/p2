@@ -1,0 +1,206 @@
+/* ===============================================
+   MAIN PANEL DOCK STYLES
+   =============================================== */
+
+.main-panel-dock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 900px; /* Exact same bound as content */
+  padding: 0 0 8px 0; /* Align side edges exactly with content bounds */
+  background-color: transparent;
+  flex-shrink: 0;
+}
+
+.dock-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  background-color: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 0;
+  padding: 0; /* Padding will be handled by internal parts */
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.dock-divider {
+  width: 80%;
+  height: 1px;
+  background-color: var(--ink-faint);
+  opacity: 0.3;
+  margin: 2px auto;
+}
+
+/* Collapsible Section Wrapper using the Grid Trick */
+.dock-collapsible-section {
+  width: 100%;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.4s ease-in-out,
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+}
+
+.dock-collapsible-section.is-expanded {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.dock-collapsible-content {
+  overflow: hidden;
+}
+
+.dock-divider {
+  width: 80%;
+  height: 1px;
+  background-color: var(--ink-faint);
+  opacity: 0.3;
+  margin: 0 auto;
+}
+
+/* 1. Live Dock Part (Top) */
+.dock-live-part {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-md);
+  z-index: 10;
+  position: relative;
+  background-color: var(--paper-ivory);
+}
+
+.live-dock-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: 700px;
+  background-color: var(--paper-cream);
+  border: var(--border-thin);
+  border-radius: 8px;
+  padding: 2px 4px;
+}
+
+.live-editor-wrapper {
+  flex: 1;
+}
+
+.live-editor-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-dark);
+  padding: 2px 8px;
+}
+
+.enter-btn {
+  border: none !important;
+  background: transparent !important;
+  color: var(--ink-medium) !important;
+  padding: 0 4px !important;
+  min-height: 24px !important;
+}
+
+.enter-btn:hover {
+  color: var(--accent-deep-teal) !important;
+}
+
+/* 2. Panel Dependent Part (Middle) */
+.dock-panel-part {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-md);
+}
+
+.dock-panel-spacer {
+  height: 8px;
+}
+
+.dock-panel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  height: 40px;
+}
+
+.feed-controls {
+  gap: var(--space-sm);
+}
+
+.refresh-button {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0, 102, 102, 0.15);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.refresh-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.refresh-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 102, 102, 0.25);
+}
+
+.refresh-button:active {
+  transform: scale(0.95) translateY(1px);
+}
+
+/* 3. Selector Part (Bottom) */
+.dock-selector-part {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-md) var(--space-sm);
+}
+
+/* Subview Toggler Styles */
+.dock-subview-toggle {
+  display: flex;
+  align-items: center;
+  background-color: var(--paper-kraft);
+  border: var(--border-thin);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.subview-button {
+  padding: 4px 12px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-medium);
+  cursor: pointer;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.subview-button:hover {
+  color: var(--ink-dark);
+}
+
+.subview-button.active {
+  background-color: var(--paper-ivory);
+  color: var(--accent-deep-teal);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}

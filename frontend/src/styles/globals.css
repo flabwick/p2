@@ -9,5 +9,8 @@
 /* 2. Global resets and normalization */
 @import './resets.css';
 
-/* 3. Utility classes and helpers */
+/* 3. Component-specific global styles */
+@import './buttons.css';
+
+/* 4. Utility classes and helpers */
 @import './utilities.css';

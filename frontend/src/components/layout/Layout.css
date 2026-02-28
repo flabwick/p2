@@ -19,6 +19,9 @@
   overflow: hidden;
 }
 
+/* Sidebar open state - handled by inline styles for dynamic width */
+/* Responsive adjustments are now handled dynamically in the component */
+
 /* ===============================================
    ANIMATIONS
    =============================================== */
@@ -45,10 +48,10 @@
   }
 }
 
-.layout-header {
+.main-panel-header {
   animation: slideInFromTop 0.3s var(--transition-physical);
 }
 
-.layout-dock {
+.main-panel-dock {
   animation: slideInFromBottom 0.3s var(--transition-physical);
 }

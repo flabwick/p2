@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+  <defs>
+    <!-- Body gradient: warm tan leather -->
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C8A882"/>
+      <stop offset="60%" stop-color="#B8926A"/>
+      <stop offset="100%" stop-color="#9E7A52"/>
+    </linearGradient>
+    <!-- Flap gradient: slightly darker for depth -->
+    <linearGradient id="flapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#BF9870"/>
+      <stop offset="100%" stop-color="#8E6840"/>
+    </linearGradient>
+    <!-- Button gradient -->
+    <linearGradient id="btnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4B483"/>
+      <stop offset="100%" stop-color="#A07840"/>
+    </linearGradient>
+    <!-- Subtle inner shadow for body -->
+    <filter id="innerShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#00000030"/>
+    </filter>
+    <filter id="flapShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#00000035"/>
+    </filter>
+    <filter id="btnShadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#00000050"/>
+    </filter>
+  </defs>
+
+  <!-- Pocket body: straight walls, shield-pointed bottom -->
+  <path d="M 15 58 L 15 92 Q 15 118 60 125 Q 105 118 105 92 L 105 58 Z"
+        fill="url(#bodyGrad)" filter="url(#innerShadow)"
+        stroke="#8A6035" stroke-width="1.2"/>
+
+  <!-- Inner stitching on body -->
+  <path d="M 23 64 L 23 90 Q 23 110 60 116 Q 97 110 97 90 L 97 64"
+        fill="none" stroke="#F5DEB355" stroke-width="1"
+        stroke-dasharray="4 3" stroke-linecap="round"/>
+
+  <!-- Flap: smooth curved arch dipping to a gentle central point -->
+  <path d="M 15 58 
+           Q 15 36 60 48 
+           Q 105 36 105 58
+           Q 82 72 60 78
+           Q 38 72 15 58 Z"
+        fill="url(#flapGrad)" filter="url(#flapShadow)"
+        stroke="#7A5528" stroke-width="1.2"/>
+
+  <!-- Stitching on flap edge -->
+  <path d="M 22 56 
+           Q 22 40 60 51
+           Q 98 40 98 56
+           Q 78 69 60 74
+           Q 42 69 22 56 Z"
+        fill="none" stroke="#F5DEB345" stroke-width="1"
+        stroke-dasharray="4 3" stroke-linecap="round"/>
+
+  <!-- Button: small elegant dome at flap tip -->
+  <circle cx="60" cy="78" r="7" fill="url(#btnGrad)" stroke="#7A5528" stroke-width="1.2" filter="url(#btnShadow)"/>
+  <!-- Button highlight -->
+  <ellipse cx="58" cy="75.5" rx="3" ry="2" fill="#ffffff30"/>
+  <!-- Button centre hole detail -->
+  <circle cx="60" cy="78" r="1.8" fill="none" stroke="#7A552888" stroke-width="1"/>
+</svg>

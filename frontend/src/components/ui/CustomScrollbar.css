@@ -1,0 +1,46 @@
+/* ===============================================
+   CUSTOM SCROLLBAR COMPONENT STYLES
+   Minimal, subtle, and consistent across browsers
+   =============================================== */
+
+.custom-scrollbar {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scrollbar-gutter: stable; /* Optional: prevents layout shift when scrollbar appears */
+}
+
+/* Webkit Scrollbar Styling (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* Narrower for more subtlety */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08); /* Very subtle, semi-transparent black */
+  border-radius: 0; /* Square corners for brutalist feel */
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15); /* Slightly darker on hover */
+}
+
+/* Firefox Scrollbar Styling */
+@supports (scrollbar-width: thin) {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
+  }
+}
+
+/* High Contrast/Accessibility - ensure it remains visible when needed */
+@media (prefers-contrast: high) {
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--ink-light);
+  }
+}
