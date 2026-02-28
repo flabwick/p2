@@ -1,0 +1,48 @@
+/* ===============================================
+   MAIN CONTAINER STYLES
+   Container for main panel + dock
+   =============================================== */
+
+.layout-main-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===============================================
+   MAIN PANEL COMPONENT STYLES
+   =============================================== */
+
+.layout-main-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background-color: var(--paper-oatmeal);
+  padding: var(--space-md);
+  gap: var(--space-md);
+}
+
+.main-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-lg);
+  color: var(--ink-light);
+}
+
+.main-placeholder h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink-dark);
+}
+
+.main-placeholder p {
+  font-size: 1rem;
+  margin: 0;
+  font-family: var(--font-mono);
+}

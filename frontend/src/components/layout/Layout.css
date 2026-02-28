@@ -1,0 +1,54 @@
+/* ===============================================
+   LAYOUT WRAPPER STYLES - V2 BAREBONES
+   Container for Header + Main Panel + Dock
+   Tokens are defined in styles/tokens.css
+   =============================================== */
+
+/* ===============================================
+   LAYOUT WRAPPER - Full Height Container
+   =============================================== */
+
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--paper-oatmeal);
+  font-family: var(--font-sans);
+  color: var(--ink-dark);
+  overflow: hidden;
+}
+
+/* ===============================================
+   ANIMATIONS
+   =============================================== */
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.layout-header {
+  animation: slideInFromTop 0.3s var(--transition-physical);
+}
+
+.layout-dock {
+  animation: slideInFromBottom 0.3s var(--transition-physical);
+}

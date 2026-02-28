@@ -1,0 +1,113 @@
+/* ===============================================
+   DOCK COMPONENT STYLES (Footer)
+   Neo-brutalist design inspired by macOS Dock
+   =============================================== */
+
+.layout-dock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm);
+  background-color: var(--paper-ivory);
+  border-top: var(--border-medium);
+  box-shadow: 0 calc(-1 * var(--depth-offset)) 0 var(--depth-color);
+  flex-shrink: 0;
+  min-height: 70px;
+}
+
+.dock-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  max-width: 100%;
+  width: 100%;
+}
+
+.dock-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  color: var(--ink-light);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+}
+
+.dock-view-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  background-color: var(--paper-cream);
+  border: var(--border-medium);
+  border-radius: 8px;
+}
+
+.dock-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--ink-medium);
+  transition: all var(--transition-physical);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dock-button:hover {
+  background-color: var(--paper-linen);
+  color: var(--ink-dark);
+  transform: translateY(-2px);
+}
+
+.dock-button.active {
+  background-color: var(--accent-burnt-orange);
+  color: var(--paper-ivory);
+  border: var(--border-medium) solid var(--accent-burnt-orange);
+}
+
+.dock-button.active:hover {
+  background-color: #d97c4c;
+}
+
+.dock-button svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+}
+
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-left: var(--space-md);
+  border-left: var(--border-medium);
+}
+
+@media (max-width: 768px) {
+  .dock-button {
+    width: 48px;
+    height: 48px;
+    gap: 0;
+  }
+
+  .dock-button span {
+    display: none;
+  }
+
+  .dock-view-buttons {
+    gap: 0;
+  }
+}

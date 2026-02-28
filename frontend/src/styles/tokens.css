@@ -1,60 +1,94 @@
+/* ===============================================
+   DESIGN TOKENS & VARIABLES
+   Central location for all design system values
+   =============================================== */
+
 :root {
-  /* Paper palette - warm, antique foundation */
+  /* =============== PAPER PALETTE ===============
+     Warm, antique foundation colors
+  ================================================ */
   --paper-ivory: #fcf9f0;
   --paper-cream: #faf5e9;
   --paper-oatmeal: #f5ede1;
   --paper-linen: #efe6d8;
   --paper-kraft: #e8ddcd;
   
-  /* Ink colors - monochrome scale */
+  /* =============== INK COLORS ===============
+     Monochrome scale for text & borders
+  =========================================== */
   --ink-black: #1e1e1e;
   --ink-dark: #3a3a3a;
   --ink-medium: #5e5e5e;
   --ink-light: #8a8a8a;
   --ink-faint: #c0c0c0;
   
-  /* Primary accents - bold, confident */
+  /* =============== PRIMARY ACCENTS ===============
+     Bold, confident accent colors
+  ============================================== */
   --accent-burnt-orange: #c56c3c;
   --accent-deep-teal: #1f6d6a;
   --accent-oxblood: #792e3a;
   --accent-mustard: #cb9e4a;
   
-  /* Secondary accents - faded, desaturated pastels */
+  /* =============== SECONDARY ACCENTS ===============
+     Faded, desaturated pastel colors
+  ============================================== */
   --pastel-pink: #f0d1cd;
   --pastel-mint: #d1e0d7;
   --pastel-lavender: #ded9e6;
   --pastel-peach: #f4ddd0;
   --pastel-sky: #d4e0e8;
   
-  /* Border weights - neo-brutalist thickness */
+  /* =============== BORDER WEIGHTS ===============
+     Neo-brutalist thickness scale
+  ========================================== */
   --border-thin: 1px solid var(--ink-black);
   --border-medium: 2px solid var(--ink-black);
   --border-thick: 3px solid var(--ink-black);
   --border-extra-thick: 4px solid var(--ink-black);
   
-  /* Border variants */
+  /* Dashed and dotted variants */
   --border-dashed: 2px dashed var(--ink-medium);
   --border-dotted: 2px dotted var(--ink-medium);
   --border-double: 4px double var(--ink-black);
   
-  /* Spacing - generous, bento-box style */
-  --space-xs: 0.5rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
-  --space-xxl: 4rem;
+  /* =============== SPACING SCALE ===============
+     Generous, bento-box style spacing
+  ========================================== */
+  --space-xs: 0.5rem;    /* 8px */
+  --space-sm: 1rem;      /* 16px */
+  --space-md: 1.5rem;    /* 24px */
+  --space-lg: 2rem;      /* 32px */
+  --space-xl: 3rem;      /* 48px */
+  --space-xxl: 4rem;     /* 64px */
   
-  /* 2D Depth - instead of shadows */
+  /* =============== 2D DEPTH ===============
+     Instead of blur shadows, use offset
+  ===================================== */
   --depth-offset: 6px;
   --depth-color: var(--ink-light);
   
-  /* Typography - hyper-legible fonts */
-  --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: 'Literata', 'Georgia', serif;
-  --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+  /* =============== TYPOGRAPHY ===============
+     Font stacks for different use cases
+  ===================================== */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
   
-  /* Transitions */
+  /* =============== TRANSITIONS ===============
+     Animation timing functions
+  ===================================== */
   --transition-physical: 0.1s cubic-bezier(0.2, 0.9, 0.3, 1.1);
   --transition-paper: 0.2s ease;
+  --transition-slow: 0.3s ease-in-out;
+  
+  /* =============== Z-INDEX SCALE ===============
+     Layering hierarchy
+  ========================================= */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 500;
+  --z-fixed: 1000;
+  --z-modal: 2000;
+  --z-tooltip: 3000;
 }

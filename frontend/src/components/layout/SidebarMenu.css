@@ -1,0 +1,70 @@
+/* ===============================================
+   SIDEBAR MENU COMPONENT STYLES
+   Skinny sidebar that expands on toggle
+   =============================================== */
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--paper-ivory);
+  border-right: var(--border-medium);
+  overflow: hidden;
+  flex-shrink: 0;
+  width: 0;
+  box-sizing: border-box;
+}
+
+.sidebar-menu.expanded {
+  width: 240px;
+  border-right: var(--border-medium);
+  overflow-y: auto;
+}
+
+.sidebar-menu.collapsed {
+  width: 0;
+  border-right: none;
+}
+
+.sidebar-menu-content {
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+  font-size: 0.75rem;
+}
+
+.sidebar-menu-content h3 {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-dark);
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-item {
+  padding: 4px 6px;
+  background-color: var(--paper-oatmeal);
+  border: var(--border-light);
+  border-radius: 2px;
+  font-size: 0.7rem;
+  color: var(--ink-medium);
+  cursor: pointer;
+  transition: all 0.2s var(--transition-physical);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item:hover {
+  background-color: var(--paper-white);
+  color: var(--ink-dark);
+  transform: translateX(2px);
+}

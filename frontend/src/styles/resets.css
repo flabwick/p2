@@ -1,0 +1,201 @@
+/* ===============================================
+   GLOBAL RESETS & NORMALIZATION
+   Applied to all elements across the app
+   =============================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink-dark);
+  background-color: var(--paper-oatmeal);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Root container */
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* =============== TYPOGRAPHY =============== */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1rem;
+}
+
+h6 {
+  font-size: 0.875rem;
+}
+
+p {
+  margin-bottom: var(--space-md);
+}
+
+small {
+  font-size: 0.875rem;
+  color: var(--ink-medium);
+}
+
+/* =============== LINKS =============== */
+a {
+  color: var(--accent-burnt-orange);
+  text-decoration: none;
+  transition: color var(--transition-physical);
+}
+
+a:hover {
+  color: var(--accent-deep-teal);
+  text-decoration: underline;
+}
+
+/* =============== BUTTONS =============== */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* =============== FORMS =============== */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
+  border: var(--border-medium);
+  padding: var(--space-sm);
+  border-radius: 2px;
+  background-color: var(--paper-ivory);
+  transition: border-color var(--transition-physical), background-color var(--transition-physical);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-burnt-orange);
+  background-color: var(--paper-cream);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: var(--paper-linen);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* =============== LISTS =============== */
+ul, ol {
+  margin-left: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+li {
+  margin-bottom: var(--space-xs);
+}
+
+/* =============== CODE =============== */
+code,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  background-color: var(--paper-cream);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+pre {
+  padding: var(--space-md);
+  overflow-x: auto;
+  margin-bottom: var(--space-md);
+  border: var(--border-medium);
+}
+
+/* =============== IMAGES =============== */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* =============== TABLES =============== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-md);
+}
+
+th, td {
+  padding: var(--space-sm);
+  text-align: left;
+  border-bottom: var(--border-thin);
+}
+
+th {
+  background-color: var(--paper-cream);
+  font-weight: 700;
+}
+
+tr:hover {
+  background-color: var(--paper-cream);
+}
+
+/* =============== SCROLLBAR =============== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--paper-oatmeal);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-medium);
+}
