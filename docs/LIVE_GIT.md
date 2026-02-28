@@ -23,3 +23,33 @@ A chat-like app where content is modular—users mix, match, and rearrange block
 - **Backend**: Supabase (PostgreSQL, Storage, Realtime, Edge Functions) + OpenRouter for LLM.
 - **Shared**: Pure TypeScript code (DSL parser, types, utilities) usable in frontend and edge functions.
 - **Directory structure** – feature‑based (vault, pockets, feed, generators, dock) with shared UI components.
+
+---
+
+# Git Setup: Initial Feature Branch Workflow
+
+**Date:** 2026-02-26
+
+## Branch Structure Established
+
+| Branch | Purpose | Status |
+|--------|---------|--------|
+| `master` | Empty baseline (README only) | Preserved |
+| `feature/beginnings` | Initial project structure | ✅ Merged to remote |
+| `feature/initial-structure-sprint` | Build on beginnings | 🔄 Active |
+
+## Key Decisions
+
+- **No merge to master yet** — waiting for functional MVP
+- `node_modules/` removed from history via `git rm --cached` + `.gitignore`
+- Clean commit: 35 files, 162KB (was 1000s of dependency files)
+
+## Commands Log
+
+```bash
+git add -A
+git commit -m "feat: beginnings..."
+git rm -r --cached node_modules  # Fix: remove committed deps
+git commit --amend --no-edit
+git push origin feature/beginnings
+git checkout -b feature/initial-structure-sprint

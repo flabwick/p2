@@ -1,51 +1,68 @@
-import { useState, ReactNode } from 'react';
+import { useState, useRef, ReactNode } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useLayoutState } from '../../hooks/useLayoutState';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
-import Button from '../ui/Button';
+import DeskViewer from './DeskViewer';
+import FeedViewer from './FeedViewer';
+import LogViewer from './LogViewer';
 
 type ViewType = 'desk' | 'feed' | 'log';
 
-const MenuIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-    <path d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
+interface FeedState {
+  role: string;
+  isDirty: boolean;
+  cards: any[];
+}
 
-const PocketContent = ({ view, id, name }: { view: ViewType; id: string; name: string }) => (
-  <div className="pocket-content">
-    <div className="pocket-header">
-      <h2 className="pocket-title">Pocket: {name}</h2>
-      <span className="pocket-id">ID: {id}</span>
+const MainPanel = ({ 
+  view, 
+  pocketId, 
+  pocketName, 
+  onFeedStateChange,
+}: { 
+  view: ViewType; 
+  pocketId: string; 
+  pocketName: string;
+  onFeedStateChange: (state: FeedState, isDirty: boolean) => void;
+}) => {
+  return (
+    <div className="main-panel-scroll">
+      {view === 'desk' && <DeskViewer pocketId={pocketId} pocketName={pocketName} />}
+      {view === 'feed' && (
+        <FeedViewer 
+          pocketId={pocketId} 
+          pocketName={pocketName} 
+          onFeedStateChange={onFeedStateChange}
+        />
+      )}
+      {view === 'log' && <LogViewer pocketId={pocketId} pocketName={pocketName} />}
     </div>
-    <div className="pocket-body">
-      <div className="content-area">
-        <div className="content-placeholder">
-          <h3>{view === 'desk' ? 'Desk View' : view === 'feed' ? 'Feed View' : 'Log View'}</h3>
-          <p>This is the {view} content for pocket: {name}</p>
-          <div className="content-grid">
-            <div className="content-block">Block 1</div>
-            <div className="content-block">Block 2</div>
-            <div className="content-block">Block 3</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div className="pocket-footer">
-      <span className="pocket-status">Last edited: Just now</span>
-      <span className="pocket-sync">View: {view}</span>
-    </div>
-  </div>
 );
+};
 
 const Layout = ({ children }: { children?: ReactNode }) => {
   const { isSidebarOpen, toggleSidebar, activePocket, pockets } = useLayoutState();
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [activeView, setActiveView] = useState<ViewType>('desk');
+  const [feedState, setFeedState] = useState<FeedState>({
+    role: 'default',
+    isDirty: false,
+    cards: [],
+  });
 
-  const activePocketData = pockets.find(p => p.id === activePocket) || pockets[0];
+  const activePocketData = pockets.find((p: any) => p.id === activePocket) || pockets[0];
+
+  const handleFeedStateChange = (state: FeedState, isDirty: boolean) => {
+    setFeedState({ ...state, isDirty });
+  };
+
+  const handleFeedRefresh = async () => {
+    // Simulate AI refresh - would call LLM with current feed state
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setFeedState({ ...feedState, isDirty: false });
+  };
 
   return (
     <div className="layout-wrapper">
@@ -56,35 +73,42 @@ const Layout = ({ children }: { children?: ReactNode }) => {
           onResize={setSidebarWidth} 
         />
 
-        <main className="main-content">
-          <div className="fixed-toggle-wrapper">
-            <Button className="square" onClick={toggleSidebar} title={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}>
-              <MenuIcon />
-            </Button>
+        <main className="main-content" style={{ '--sidebar-width': `${sidebarWidth}px` } as React.CSSProperties}>
+          <div className="main-panel-area">
+            <Header
+              activeView={activeView}
+              isSidebarOpen={isSidebarOpen}
+              onToggleSidebar={toggleSidebar}
+            />
+
+            <div className="panel-content">
+              <Routes>
+                <Route path="/pocket/:id" element={
+                  <MainPanel
+                    view={activeView}
+                    pocketId={activePocketData?.id || 'main'}
+                    pocketName={activePocketData?.name || 'Main Context'}
+                    onFeedStateChange={handleFeedStateChange}
+                  />
+                } />
+                <Route path="/" element={
+                  <MainPanel
+                    view={activeView}
+                    pocketId={activePocketData?.id || 'main'}
+                    pocketName={activePocketData?.name || 'Main Context'}
+                    onFeedStateChange={handleFeedStateChange}
+                  />
+                } />
+              </Routes>
+            </div>
+
+            <Footer 
+              activeView={activeView} 
+              onViewChange={setActiveView}
+              feedState={feedState}
+              onFeedRefresh={handleFeedRefresh}
+            />
           </div>
-
-          <Header />
-
-          <div className="panel-content">
-            <Routes>
-              <Route path="/pocket/:id" element={
-                <PocketContent 
-                  view={activeView}
-                  id={activePocketData?.id || 'main'} 
-                  name={activePocketData?.name || 'Main Context'} 
-                />
-              } />
-              <Route path="/" element={
-                <PocketContent 
-                  view={activeView}
-                  id={activePocketData?.id || 'main'} 
-                  name={activePocketData?.name || 'Main Context'} 
-                />
-              } />
-            </Routes>
-          </div>
-
-          <Footer activeView={activeView} onViewChange={setActiveView} />
         </main>
       </div>
     </div>

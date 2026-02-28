@@ -16,6 +16,7 @@ A chat-like app where content is modular—users mix, match, and rearrange block
 - **LLM orchestration** – weak model for executive decisions, strong model for focused proposals.
 - **Mobile first?** Web first, then React Native, then desktop.
 - **Physical UI feedback** – all interactive elements use standardized button component with 90s keyboard press animation.
+- **Local‑first development** – The project uses Supabase local development with Docker, mirroring production. All environment variables are split between frontend (`VITE_*`) and edge functions (via symlinked `.env`). Shared code is strictly platform‑agnostic and validated in both Deno and browser environments.
 
 ## Architecture Summary
 - **Frontend**: React + TypeScript + Vite, Zustand, DnD Kit, Framer Motion.
@@ -74,6 +75,90 @@ The sidebar needed drag-to-resize capability while maintaining a minimum width t
 ## Consequences
 - **Affects**: `Sidebar.tsx`, `Layout.tsx`, `Footer.tsx`, view routing in Layout
 - **Trade-offs**: Larger min-width (280 vs 240) ensures buttons fit but uses more screen space on small windows
+
+---
+
+# ADR-004: Local Development Environment Setup
+
+## Context
+We needed a consistent local development environment that mirrors production, supports monorepo workspaces, and allows edge functions to share code with the frontend.
+
+## Decision
+- Use **Supabase CLI** with Docker for local database and edge functions.
+- Configure **pnpm workspaces** in root, with packages `frontend`, `shared`, and `backend/functions/*`.
+- Store environment variables:
+  - Root `.env` for OpenRouter and Supabase service role (used by edge functions via symlink).
+  - Frontend `.env.local` for `VITE_SUPABASE_URL` and anon key.
+  - Edge functions use an `import_map.json` that maps `@/shared/` to the local shared package, ensuring Deno compatibility.
+- Symlink `backend/supabase/.env` → `../.env.local` so edge functions inherit frontend env.
+
+## Consequences
+- Affects: `frontend/`, `shared/`, `backend/`, `supabase/`
+- Trade-offs: Requires manual symlink creation; local Supabase must be started before development.
+- Enables rapid iteration with hot‑reloading and real‑time updates identical to production.
+
+---
+
+# ADR-005: LLM Model Selection and Fallback Strategy
+
+## Context
+We need a cost‑effective, reliable LLM setup for the two‑tier executive/proposal system. The project must handle provider outages gracefully.
+
+## Decision
+- **Primary model**: `qwen/qwen3-coder-next` (low cost, strong coding, long context).
+- **Backup model**: `minimax/minimax-m2.5` (high‑performance, excellent tool use).
+- Both are accessed via OpenRouter; fallback is implemented in code (try primary, catch errors, fallback to backup).
+- The shared `llm/client.ts` accepts model name and API key, encapsulating the fallback logic.
+- No streaming initially; full responses are processed.
+
+## Consequences
+- Affects: `shared/src/llm/client.ts`, all edge functions that call LLM.
+- Trade-offs: Slightly higher latency on fallback, but ensures uptime. OpenRouter provider‑level fallback already reduces risk.
+- The two‑tier executive/proposal split can later be implemented by calling the same client with different model parameters.
+
+---
+
+# ADR-006: Standardized Button Component with Physical Press Animation
+
+## Context
+We needed a reusable button component that provides consistent physical keyboard-like feedback across the entire UI, reinforcing the paper-digital neo-brutalist aesthetic.
+
+## Decision
+- Create a centralized `Button` component in `components/ui/Button.tsx` using **Framer Motion**.
+- Implement 90s keyboard press animation:
+  - **whileTap**: `y: 3`, `boxShadow: '0 0 0 transparent'` (pressed down effect)
+  - **whileHover**: `y: -1`, `boxShadow: '0 4px 0 var(--depth-color)'` (lifted effect)
+- Support `active` prop for toggle states (swaps to accent-deep-teal background).
+- Accepts `children`, `onClick`, `active`, `title`, and `className` props.
+- All buttons throughout the app (sidebar tabs, view toggles, pocket menu) use this standardized component.
+
+## Consequences
+- Affects: `frontend/src/components/ui/Button.tsx`
+- Trade-offs: Requires Framer Motion dependency, but provides smooth hardware-accelerated animations.
+- Ensures consistent physical feel across all interactive elements.
+- The component is easily copyable for new buttons without recreating the animation logic.
+
+---
+
+# ADR-007: Sidebar with Tab Navigation, Expand/Collapse, and Drag-to-Resize
+
+## Context
+The main navigation needed a sidebar that supports multiple feature areas (Pockets, Vault, Roles, Events, Models, Settings) while being flexible and user-adjustable.
+
+## Decision
+- **Tab Navigation**: Sidebar contains icon-only buttons for 6 tabs: Pockets, Vault, Roles, Events, Models, Settings. Each tab reveals relevant placeholder content in the sidebar content area.
+- **Expand/Collapse**: Sidebar can be toggled open/closed via a menu button in the fixed toggle wrapper (top-left of main content). State managed in Zustand (`isSidebarOpen`).
+- **Drag-to-Resize**: Implemented with mouse event handlers (`mousedown`, `mousemove`, `mouseup`):
+  - Minimum width: 280px
+  - Resize handle is a dedicated div on the right edge of the sidebar
+  - Dynamically calculates side margins based on extra width for aesthetic spacing.
+- **State Management**: Zustand store (`useLayoutState` hook) manages sidebar state, pocket collection, active pocket, and theme.
+
+## Consequences
+- Affects: `frontend/src/components/layout/Sidebar.tsx`, `frontend/src/hooks/useLayoutState.ts`
+- Trade-offs: Requires careful mouse event cleanup in useEffect; resize can feel jumpy if not throttled (currently direct update).
+- Provides familiar desktop-app feel with intuitive resize handle.
+- Content area adapts automatically as sidebar width changes.
 
 ---
 

@@ -1,0 +1,391 @@
+/* ===============================================
+   HEADER COMPONENT STYLES
+   Clean, consistent header with proper alignment
+   =============================================== */
+
+/* Header container - sits flush with main content area */
+.header-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  padding-left: var(--space-md);
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 4px 4px 4px 4px;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+/* Sidebar toggle button - fixed position, no movement */
+.header-sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  cursor: pointer;
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 2px;
+  transition: background 0.1s ease;
+}
+
+.header-sidebar-toggle:hover {
+  background: var(--paper-cream);
+}
+
+.header-sidebar-toggle:active {
+  background: var(--paper-linen);
+}
+
+/* Arrow icon inside toggle */
+.header-arrow-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dark);
+  transition: transform 0.15s ease;
+}
+
+/* Pocket count button */
+.header-pocket-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 var(--space-sm);
+  flex-shrink: 0;
+  cursor: pointer;
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 2px;
+  transition: background 0.1s ease;
+}
+
+.header-pocket-btn:hover {
+  background: var(--paper-cream);
+}
+
+.header-pocket-btn:active {
+  background: var(--paper-linen);
+}
+
+/* Pocket count text */
+.header-pocket-count {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+  line-height: 1;
+}
+
+/* View indicator - simple text, no badge */
+.header-view-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Pocket name display */
+.header-pocket-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+  padding-left: var(--space-sm);
+  margin-left: var(--space-sm);
+  border-left: var(--border-thin);
+  line-height: 1;
+}
+
+/* Pocket dropdown menu */
+.header-pocket-menu {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  left: 0;
+  width: 280px;
+  z-index: 101;
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.header-menu-content {
+  padding: var(--space-sm);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.header-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm);
+  width: 100%;
+  cursor: pointer;
+  background: var(--paper-ivory);
+  border: var(--border-thin);
+  border-radius: 2px;
+  transition: background 0.1s ease;
+  margin-bottom: var(--space-xs);
+}
+
+.header-menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.header-menu-item:hover {
+  background: var(--paper-cream);
+}
+
+.header-menu-item.active {
+  background: var(--accent-deep-teal);
+  border-color: var(--accent-deep-teal);
+}
+
+.header-menu-item.active .header-menu-label,
+.header-menu-item.active .header-menu-count {
+  color: var(--paper-ivory);
+}
+
+.header-menu-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+}
+
+.header-menu-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-medium);
+}
+
+.header-no-pockets {
+  text-align: center;
+  padding: var(--space-md);
+  font-style: italic;
+  color: var(--ink-medium);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Header content wrapper */
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Left section: view label + pocket count */
+.header-left-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* Right section: pocket name */
+.header-right-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ===============================================
+   POCKET TABS BAR STYLES
+   Expandable tab bar for switching between pockets
+   =============================================== */
+
+.pockets-wrapper {
+  position: relative;
+}
+
+.header-pocket-tabs {
+  position: relative;
+}
+
+/* Active/main tab button - always visible */
+.header-active-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--paper-cream);
+  border: var(--border-medium);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+  min-width: 180px;
+}
+
+.header-active-tab:hover {
+  background: var(--paper-linen);
+}
+
+.header-active-tab:active {
+  background: var(--paper-kraft);
+}
+
+.header-tab-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Expandable tabs container - expands downward */
+.header-all-tabs {
+  position: absolute;
+  top: calc(100% + var(--space-xs));
+  left: 0;
+  width: 280px;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: var(--border-medium);
+  border-radius: 0 0 2px 2px;
+  background: var(--paper-ivory);
+  overflow: hidden;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.header-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--space-xs);
+}
+
+/* Individual tab button */
+.header-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  width: 100%;
+  flex-shrink: 0;
+  background: var(--paper-ivory);
+  border: var(--border-thin);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+  text-align: left;
+  margin-bottom: var(--space-xs);
+  white-space: nowrap;
+}
+
+.header-tab:last-child {
+  border-right: none;
+  margin-bottom: 0;
+}
+
+.header-tab:hover {
+  background: var(--paper-cream);
+  border-color: var(--ink-dark);
+}
+
+.header-tab:active {
+  background: var(--paper-linen);
+}
+
+/* Active tab styling */
+.header-tab.active {
+  background: var(--accent-deep-teal);
+  border-color: var(--accent-deep-teal);
+  color: var(--paper-ivory);
+  font-weight: 600;
+}
+
+.header-tab.active .header-tab-name,
+.header-tab.active .header-tab-count {
+  color: var(--paper-ivory);
+}
+
+/* Tab name and count */
+.header-tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-dark);
+}
+
+.header-tab-count {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background: var(--paper-kraft);
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--ink-medium);
+  min-width: 24px;
+  text-align: center;
+}
+
+.header-tab.active .header-tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--paper-ivory);
+}
+
+/* Add pocket button */
+.header-add-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: var(--space-xs) var(--space-sm);
+  width: 100%;
+  background: var(--paper-linen);
+  border: var(--border-thin);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+  text-align: center;
+  margin-top: var(--space-xs);
+  border-top: var(--border-medium);
+}
+
+.header-add-tab span:first-child {
+  font-size: 0.6rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.header-add-tab:hover {
+  background: var(--paper-kraft);
+  border-color: var(--ink-dark);
+}
+
+.header-add-tab:active {
+  background: var(--paper-kraft);
+}

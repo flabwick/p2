@@ -605,3 +605,207 @@
   align-items: center;
   gap: var(--space-xs);
 }
+
+/* ===============================================
+   POCKET SIDEBAR ENHANCEMENTS
+   Recents, Inbox, Folders, Favourites sections
+   =============================================== */
+
+.pocket-create-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  background: var(--accent-deep-teal);
+  color: var(--paper-ivory);
+  border: var(--border-medium);
+  border-color: var(--accent-deep-teal);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-physical);
+}
+
+.pocket-create-btn:hover {
+  background: var(--accent-deep-teal);
+  opacity: 0.9;
+  transform: translate(-1px, -1px);
+}
+
+.pocket-create-btn:active {
+  transform: translate(1px, 1px);
+}
+
+.pocket-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.pocket-subsection-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-xs);
+  border-bottom: var(--border-thin);
+}
+
+.pocket-subsection-title {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-dark);
+  margin: 0;
+  border: none;
+  flex: 1;
+}
+
+.pocket-inbox-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: var(--accent-burnt-orange);
+  color: var(--paper-ivory);
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.pocket-add-folder-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--ink-medium);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 2px;
+}
+
+.pocket-add-folder-btn:hover {
+  background: var(--paper-cream);
+  color: var(--accent-deep-teal);
+}
+
+.pocket-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.pocket-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--paper-ivory);
+  border: var(--border-thin);
+  border-radius: 2px;
+  transition: all var(--transition-physical);
+  cursor: pointer;
+}
+
+.pocket-item:hover {
+  background: var(--paper-cream);
+  transform: translate(-1px, -1px);
+  border-color: var(--accent-deep-teal);
+}
+
+.pocket-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pocket-item-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pocket-item-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  background: var(--paper-kraft);
+  padding: 2px 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.pocket-item-date {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--ink-medium);
+  letter-spacing: 0.02em;
+}
+
+.inbox-item {
+  border-left: 3px solid var(--accent-burnt-orange);
+}
+
+.pocket-folder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--paper-kraft);
+  border: var(--border-thin);
+  border-radius: 2px;
+  transition: all var(--transition-physical);
+  cursor: pointer;
+}
+
+.pocket-folder:hover {
+  background: var(--paper-cream);
+  transform: translate(-1px, -1px);
+  border-color: var(--accent-deep-teal);
+}
+
+.pocket-folder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pocket-folder-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ink-dark);
+}
+
+.pocket-folder-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-light);
+  background: var(--paper-ivory);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+.favourite-item {
+  border-left: 3px solid var(--accent-deep-teal);
+}

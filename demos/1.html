@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pocket · symbols · neo-brutalist demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f5efe6;  /* antique oatmeal */
+            font-family: 'Courier New', Courier, 'IBM Plex Mono', monospace;
+            padding: 2.5rem 1.5rem;
+            color: #1e1e1e;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* bento grid – large margins, staggered visual rhythm */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2.5rem 2rem;
+            align-items: stretch;
+            justify-items: center;
+            margin: 3rem 0;
+        }
+
+        /* each icon card – brutalist box with 2D depth (no blur) */
+        .icon-card {
+            position: relative;
+            width: 100%;
+            max-width: 260px;
+            background: #fcf9f2;  /* light cardstock */
+            border: 3px solid #1e1e1e;
+            padding: 2rem 1rem 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.1s ease;
+            box-shadow: none;
+            /* 2D depth: layered offset block (instead of drop shadow) */
+            isolation: isolate;
+        }
+
+        .icon-card::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 100%;
+            height: 100%;
+            background-color: #c9b9a8;  /* muted, aged taupe */
+            border: 3px solid #1e1e1e;
+            z-index: -1;
+            transition: all 0.1s ease;
+        }
+
+        /* staggered positioning – some cards get different offsets */
+        .icon-card:nth-child(3n+1)::before {
+            top: 12px;
+            left: 4px;
+            background-color: #b7aa9a;
+        }
+        .icon-card:nth-child(3n+2)::before {
+            top: 4px;
+            left: 12px;
+            background-color: #dacbb8;
+        }
+        .icon-card:nth-child(5n+3)::before {
+            top: 10px;
+            left: 10px;
+            background-color: #c0b0a0;
+        }
+
+        /* active press – physical switch feel */
+        .icon-card:active {
+            transform: translate(3px, 3px);
+        }
+        .icon-card:active::before {
+            top: 2px;
+            left: 2px;
+        }
+
+        /* svg container */
+        .icon-svg {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.2rem auto;
+            display: block;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            stroke: #1e1e1e;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            vector-effect: non-scaling-stroke;
+        }
+
+        /* secondary accents – desaturated pastels for some icons */
+        .icon-card:nth-child(4n) svg line,
+        .icon-card:nth-child(4n) svg path,
+        .icon-card:nth-child(4n) svg circle,
+        .icon-card:nth-child(4n) svg polyline,
+        .icon-card:nth-child(4n) svg polygon {
+            stroke: #b35c5c;  /* faded brick */
+        }
+        .icon-card:nth-child(5n) svg line,
+        .icon-card:nth-child(5n) svg path,
+        .icon-card:nth-child(5n) svg circle,
+        .icon-card:nth-child(5n) svg polyline,
+        .icon-card:nth-child(5n) svg polygon {
+            stroke: #5f8b8b;  /* dusty teal */
+        }
+        .icon-card:nth-child(7n) svg line,
+        .icon-card:nth-child(7n) svg path,
+        .icon-card:nth-child(7n) svg circle,
+        .icon-card:nth-child(7n) svg polyline,
+        .icon-card:nth-child(7n) svg polygon {
+            stroke: #9f7e5c;  /* worn leather */
+        }
+
+        /* label */
+        .label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: #fcf9f2;
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border: 2px solid #1e1e1e;
+            margin-top: 0.5rem;
+            color: #1e1e1e;
+        }
+
+        /* header / footer – large margins, dead space */
+        .title-block {
+            border-bottom: 4px solid #1e1e1e;
+            padding-bottom: 1.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: baseline;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .title-block h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: #fcf9f2;
+            border: 4px solid #1e1e1e;
+            padding: 0.5rem 2rem 0.2rem 2rem;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+        .title-block p {
+            font-size: 1.2rem;
+            border-left: 4px solid #1e1e1e;
+            padding-left: 1.5rem;
+            color: #3a2e28;
+        }
+
+        .footnote {
+            margin-top: 5rem;
+            border-top: 4px dashed #1e1e1e;
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #3a2e28;
+        }
+        .dotted-line {
+            border-bottom: 2px dashed #1e1e1e;
+            width: 100px;
+            height: 2px;
+        }
+
+        /* some extra bento spacing */
+        .sidenote {
+            font-size: 0.9rem;
+            background: #fff6e8;
+            border: 2px solid #1e1e1e;
+            padding: 0.8rem;
+            max-width: 300px;
+            margin-top: 2rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-block">
+            <h1>POCKET ◈ SYMBOLS</h1>
+            <p>neo‑brutalist / paper‑digital · thick borders · 2D depth</p>
+        </div>
+
+        <!-- bento grid of all symbols -->
+        <div class="grid">
+
+            <!-- 1. VAULT -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <rect x="15" y="15" width="70" height="70" stroke="currentColor" fill="none" />
+                        <circle cx="70" cy="50" r="14" stroke="currentColor" fill="none" />
+                        <!-- small dial mark -->
+                        <line x1="70" y1="44" x2="70" y2="56" stroke="currentColor" />
+                        <line x1="64" y1="50" x2="76" y2="50" stroke="currentColor" />
+                    </svg>
+                </div>
+                <div class="label">VAULT</div>
+            </div>
+
+            <!-- 2. POCKET -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- main pocket pouch -->
+                        <rect x="20" y="30" width="60" height="45" stroke="currentColor" fill="none" />
+                        <!-- flap line -->
+                        <line x1="20" y1="30" x2="80" y2="30" stroke="currentColor" />
+                        <line x1="80" y1="30" x2="70" y2="20" stroke="currentColor" />
+                        <line x1="20" y1="30" x2="30" y2="20" stroke="currentColor" />
+                        <!-- subtle pocket opening -->
+                        <line x1="30" y1="40" x2="70" y2="40" stroke="currentColor" stroke-width="3" stroke-dasharray="3 3" />
+                    </svg>
+                </div>
+                <div class="label">POCKET</div>
+            </div>
+
+            <!-- 3. INBOX (tray / drop) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- tray base -->
+                        <rect x="15" y="55" width="70" height="25" stroke="currentColor" fill="none" />
+                        <!-- incoming arrow -->
+                        <line x1="50" y1="15" x2="50" y2="50" stroke="currentColor" />
+                        <polyline points="40,40 50,50 60,40" stroke="currentColor" fill="none" />
+                        <!-- tray flared sides (optional) -->
+                        <line x1="15" y1="55" x2="5" y2="65" stroke="currentColor" />
+                        <line x1="85" y1="55" x2="95" y2="65" stroke="currentColor" />
+                    </svg>
+                </div>
+                <div class="label">INBOX</div>
+            </div>
+
+            <!-- 4. RECENT (clock) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="35" stroke="currentColor" fill="none" />
+                        <!-- hands: ~10:10 -->
+                        <line x1="50" y1="50" x2="30" y2="35" stroke="currentColor" />
+                        <line x1="50" y1="50" x2="65" y2="30" stroke="currentColor" />
+                        <!-- small center dot -->
+                        <circle cx="50" cy="50" r="3" stroke="currentColor" fill="currentColor" />
+                    </svg>
+                </div>
+                <div class="label">RECENT</div>
+            </div>
+
+            <!-- 5. FOLDERS / FAVOURITES (star) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- five-point star outline -->
+                        <polygon points="50,12 63,40 95,40 69,58 82,90 50,72 18,90 31,58 5,40 37,40" stroke="currentColor" fill="none" />
+                    </svg>
+                </div>
+                <div class="label">FAVOURITES</div>
+            </div>
+
+            <!-- 6. DESK (table / workbench) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- table top -->
+                        <line x1="10" y1="45" x2="90" y2="45" stroke="currentColor" stroke-width="5" />
+                        <!-- legs -->
+                        <line x1="30" y1="45" x2="30" y2="85" stroke="currentColor" />
+                        <line x1="70" y1="45" x2="70" y2="85" stroke="currentColor" />
+                        <!-- small tool / square -->
+                        <line x1="70" y1="25" x2="85" y2="25" stroke="currentColor" />
+                        <line x1="85" y1="25" x2="85" y2="40" stroke="currentColor" />
+                    </svg>
+                </div>
+                <div class="label">DESK</div>
+            </div>
+
+            <!-- 7. FEED (stacked lines) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <line x1="20" y1="30" x2="80" y2="30" stroke="currentColor" stroke-width="4" />
+                        <line x1="20" y1="48" x2="80" y2="48" stroke="currentColor" stroke-width="4" />
+                        <line x1="20" y1="66" x2="80" y2="66" stroke="currentColor" stroke-width="4" />
+                        <!-- small wavy line to indicate dynamic content (optional) -->
+                        <path d="M30 82 Q40 75, 50 82 T70 82" stroke="currentColor" fill="none" stroke-width="3" />
+                    </svg>
+                </div>
+                <div class="label">FEED</div>
+            </div>
+
+            <!-- 8. LOG (spiral notebook) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- notebook cover -->
+                        <rect x="25" y="20" width="55" height="65" stroke="currentColor" fill="none" />
+                        <!-- spiral binding (circles) -->
+                        <line x1="25" y1="25" x2="25" y2="80" stroke="currentColor" stroke-width="3" />
+                        <circle cx="25" cy="30" r="4" stroke="currentColor" fill="none" />
+                        <circle cx="25" cy="48" r="4" stroke="currentColor" fill="none" />
+                        <circle cx="25" cy="66" r="4" stroke="currentColor" fill="none" />
+                        <!-- horizontal lines (writing) -->
+                        <line x1="40" y1="35" x2="70" y2="35" stroke="currentColor" stroke-dasharray="2 4" />
+                        <line x1="40" y1="53" x2="70" y2="53" stroke="currentColor" stroke-dasharray="2 4" />
+                    </svg>
+                </div>
+                <div class="label">LOG</div>
+            </div>
+
+            <!-- 9. DOCK (clipboard) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- clipboard board -->
+                        <rect x="20" y="25" width="60" height="60" stroke="currentColor" fill="none" />
+                        <!-- clip -->
+                        <rect x="35" y="12" width="30" height="15" stroke="currentColor" fill="none" />
+                        <line x1="35" y1="19" x2="65" y2="19" stroke="currentColor" stroke-width="4" />
+                        <!-- paper line (optional) -->
+                        <line x1="30" y1="45" x2="70" y2="45" stroke="currentColor" stroke-dasharray="3 2" />
+                    </svg>
+                </div>
+                <div class="label">DOCK</div>
+            </div>
+
+            <!-- 10. GENERATOR (plus inside cog/circle) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- outer circle (cog hint) -->
+                        <circle cx="50" cy="50" r="38" stroke="currentColor" fill="none" />
+                        <!-- plus -->
+                        <line x1="30" y1="50" x2="70" y2="50" stroke="currentColor" stroke-width="5" />
+                        <line x1="50" y1="30" x2="50" y2="70" stroke="currentColor" stroke-width="5" />
+                        <!-- small gear teeth hints (minimal) -->
+                        <line x1="15" y1="35" x2="22" y2="40" stroke="currentColor" />
+                        <line x1="80" y1="65" x2="87" y2="70" stroke="currentColor" />
+                    </svg>
+                </div>
+                <div class="label">GENERATOR</div>
+            </div>
+
+            <!-- 11. REFRESH (circular arrow) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- circular arrow path -->
+                        <path d="M65 25 A30 30 0 1 1 30 65 L40 60 M30 65 L25 55" stroke="currentColor" fill="none" stroke-width="4" />
+                        <!-- small inner arrow (direction) -->
+                        <polyline points="58 30 68 22 75 32" stroke="currentColor" fill="none" />
+                    </svg>
+                </div>
+                <div class="label">REFRESH</div>
+            </div>
+
+            <!-- 12. ROLE (tag / mask) -->
+            <div class="icon-card">
+                <div class="icon-svg">
+                    <svg viewBox="0 0 100 100">
+                        <!-- tag body -->
+                        <rect x="20" y="35" width="60" height="40" stroke="currentColor" fill="none" />
+                        <!-- tag hole -->
+                        <circle cx="20" cy="55" r="6" stroke="currentColor" fill="none" />
+                        <!-- string -->
+                        <line x1="6" y1="48" x2="18" y2="53" stroke="currentColor" />
+                        <!-- simple theatrical mask hint (two circles) -->
+                        <circle cx="45" cy="50" r="5" stroke="currentColor" fill="none" />
+                        <circle cx="65" cy="50" r="5" stroke="currentColor" fill="none" />
+                    </svg>
+                </div>
+                <div class="label">ROLE</div>
+            </div>
+        </div>
+
+        <!-- extra bento/stationery details: connector lines and dead space -->
+        <div style="display: flex; gap: 3rem; margin: 3rem 0 1rem; flex-wrap: wrap;">
+            <div class="sidenote">
+                ⚡ dashed lines show grouping<br> 
+                ▤ 2D depth · bold borders
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="border-bottom: 3px dashed #1e1e1e; width: 50px;"></span>
+                <span style="font-size: 0.9rem;">connector pipe</span>
+            </div>
+        </div>
+
+        <!-- small demo of nested/grouped concept (just visual flair) -->
+        <div style="border: 3px solid #1e1e1e; padding: 2rem; background: #f3eadc; margin: 3rem 0;">
+            <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+                <div style="border: 3px solid #1e1e1e; padding: 0.5rem 1rem; background: #fcf9f2;">📥 INBOX</div>
+                <div style="border: 2px dashed #1e1e1e; height: 2px; width: 40px;"></div>
+                <div style="border: 3px solid #1e1e1e; padding: 1rem; background: #fcf9f2; display: flex; gap: 0.8rem;">
+                    <span style="border-right: 2px solid #1e1e1e; padding-right: 0.8rem;">GENERATOR</span>
+                    <span>⚙️ ⟳</span>
+                </div>
+                <div style="border: 2px dashed #1e1e1e; height: 2px; width: 40px;"></div>
+                <div style="border: 3px solid #1e1e1e; padding: 0.5rem 1rem; background: #fcf9f2;">📌 DOCK</div>
+            </div>
+            <p style="margin-top: 1.5rem; font-size: 0.9rem; color: #5a4a3a;">// bento alignment · large margins · dead space intentional</p>
+        </div>
+
+        <div class="footnote">
+            <span>◈ POCKETS · VAULT · DESK · FEED ◈</span>
+            <span class="dotted-line"></span>
+            <span>v.01 · neo‑brutalist paper‑digital</span>
+        </div>
+
+        <!-- small note about click animation -->
+        <p style="margin-top: 1rem; font-size: 0.8rem; border-left: 3px solid #1e1e1e; padding-left: 1rem;">
+            ⇣ tap any card — feels like a physical switch (move +3px)
+        </p>
+    </div>
+</body>
+</html>

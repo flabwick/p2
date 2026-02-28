@@ -12,6 +12,7 @@ build/
 .env
 .env.local
 .env.*.local
+supabase/.env
 
 # IDE
 .vscode/*

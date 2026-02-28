@@ -1,0 +1,11 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.0",
+    "openai/": "https://deno.land/x/openai@v4.28.0/",
+    "std/": "https://deno.land/std@0.208.0/",
+    "@/shared/": "../shared/src/",
+    "@/shared/types/": "../shared/src/types/",
+    "@/shared/dsl/": "../shared/src/dsl/",
+    "@/shared/utils/": "../shared/src/utils/"
+  }
+}
