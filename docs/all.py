@@ -220,4 +220,4 @@ def main():
         planning_content.append(read_file(filepath))
 
     # Generate file tree
-    tree_content = get_file_tree(P}
+    tree_content = get_file_tree(P)

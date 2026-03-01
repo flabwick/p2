@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { CustomScrollbar } from '../../ui/CustomScrollbar';
 import './VaultSidebar.css';
 
@@ -29,6 +29,14 @@ const NewFolderIcon = () => (
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
     <line x1="12" y1="11" x2="12" y2="17"></line>
     <line x1="9" y1="14" x2="15" y2="14"></line>
+  </svg>
+);
+
+const UploadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
   </svg>
 );
 
@@ -89,19 +97,17 @@ const SelectorIcon = () => (
 
 // --- Types ---
 
-interface FileNode {
-  id: string;
-  name: string;
-  type: 'folder' | 'file';
-  extension?: string;
-  children?: FileNode[];
-}
+import { FileNode } from '@/shared/types/vault';
+import { useVaultStore } from '@/features/vault/store/vaultStore';
+import { useShallow } from 'zustand/shallow';
 
 interface ContextMenuState {
   x: number;
   y: number;
   visible: boolean;
+  nodeId: string | null;
   nodeType: 'folder' | 'file' | null;
+  nodeName: string | null;
 }
 
 // --- Component ---
@@ -109,51 +115,75 @@ interface ContextMenuState {
 export function VaultSidebar() {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({ 'root': true });
   const [isVaultSelectorOpen, setIsVaultSelectorOpen] = useState(false);
-  const [selectedVault, setSelectedVault] = useState('Main Vault');
-  const [contextMenu, setContextMenu] = useState<ContextMenuState>({ x: 0, y: 0, visible: false, nodeType: null });
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({ 
+    x: 0, y: 0, visible: false, nodeId: null, nodeType: null, nodeName: null 
+  });
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  const vaults = ['Main Vault', 'Project Alpha', 'Personal Notes', 'Archive'];
+  // Pick stable actions individually to guarantee reference stability
+  const fetchVaults = useVaultStore(state => state.fetchVaults);
+  const fetchVaultContent = useVaultStore(state => state.fetchVaultContent);
+  const createFolder = useVaultStore(state => state.createFolder);
+  const createFile = useVaultStore(state => state.createFile);
+  const renameNode = useVaultStore(state => state.renameNode);
+  const moveNode = useVaultStore(state => state.moveNode);
+  const deleteNode = useVaultStore(state => state.deleteNode);
+  const setIsCreating = useVaultStore(state => state.setIsCreating);
+  const setActiveVaultId = useVaultStore(state => state.setActiveVaultId);
 
-  const vaultTree: FileNode = {
-    id: 'root',
-    name: 'Vault',
-    type: 'folder',
-    children: [
-      {
-        id: 'docs',
-        name: 'Documents',
-        type: 'folder',
-        children: [
-          { id: 'doc1', name: 'README.md', type: 'file', extension: 'md' },
-          { id: 'doc2', name: 'SPEC.md', type: 'file', extension: 'md' },
-          { id: 'doc3', name: 'report.pdf', type: 'file', extension: 'pdf' },
-        ],
-      },
-      {
-        id: 'code',
-        name: 'Code',
-        type: 'folder',
-        children: [
-          { id: 'code1', name: 'main.py', type: 'file', extension: 'py' },
-          { id: 'code2', name: 'utils.js', type: 'file', extension: 'js' },
-          { id: 'code3', name: 'styles.css', type: 'file', extension: 'css' },
-        ],
-      },
-      {
-        id: 'images',
-        name: 'Images',
-        type: 'folder',
-        children: [
-          { id: 'img1', name: 'screenshot.png', type: 'file', extension: 'png' },
-          { id: 'img2', name: 'mockup.jpg', type: 'file', extension: 'jpg' },
-        ],
-      },
-      { id: 'data', name: 'data.json', type: 'file', extension: 'json' },
-      { id: 'config', name: 'config.yaml', type: 'file', extension: 'yaml' },
-    ],
-  };
+  // Pick state
+  const { activeVaultId, vaults, isLoading, isCreating, folders, files } = useVaultStore(useShallow(state => ({
+    activeVaultId: state.activeVaultId,
+    vaults: state.vaults,
+    isLoading: state.isLoading,
+    isCreating: state.isCreating,
+    folders: state.folders,
+    files: state.files
+  })));
+
+  // Memoize tree building to fix "getSnapshot" warning and unnecessary re-renders
+  const vaultTree = useMemo(() => {
+    const buildTree = (parentId: string | null = null): FileNode[] => {
+      const currentFolders = folders
+        .filter((f) => (f.parent_id || null) === parentId)
+        .map((f) => ({
+          id: f.id,
+          name: f.name,
+          type: 'folder' as const,
+          parentId: f.parent_id || undefined,
+          children: buildTree(f.id),
+        }));
+
+      const currentFiles = files
+        .filter((f) => (f.folder_id || null) === parentId)
+        .map((f) => ({
+          id: f.id,
+          name: f.name,
+          type: 'file' as const,
+          parentId: f.folder_id || undefined,
+          extension: f.name.split('.').pop(),
+        }));
+
+      return [...currentFolders, ...currentFiles];
+    };
+    return buildTree(null);
+  }, [folders, files]);
+
+  const selectedVault = useMemo(() => 
+    vaults.find(v => v.id === activeVaultId)?.name || 'Select Vault',
+    [vaults, activeVaultId]
+  );
+
+  useEffect(() => {
+    fetchVaults();
+  }, [fetchVaults]);
+
+  useEffect(() => {
+    if (activeVaultId) {
+      fetchVaultContent(activeVaultId);
+    }
+  }, [activeVaultId, fetchVaultContent]);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => ({
@@ -162,15 +192,87 @@ export function VaultSidebar() {
     }));
   };
 
-  const handleContextMenu = (e: React.MouseEvent, type: 'folder' | 'file') => {
+  const handleContextMenu = (e: React.MouseEvent, node: FileNode) => {
     e.preventDefault();
     e.stopPropagation();
     
-    let x = e.clientX;
-    let y = e.clientY;
+    setContextMenu({ 
+      x: e.clientX, 
+      y: e.clientY, 
+      visible: true, 
+      nodeId: node.id, 
+      nodeType: node.type,
+      nodeName: node.name
+    });
+  };
 
-    // We'll adjust for bounds in useEffect or right here if we have dimensions
-    setContextMenu({ x, y, visible: true, nodeType: type });
+  const handleCreateFolder = () => {
+    setIsCreating('folder');
+  };
+
+  const handleCreateFile = () => {
+    setIsCreating('file');
+  };
+
+  const handleCommitCreation = async (name: string) => {
+    if (name.trim()) {
+      setIsCreating(null); // Clear early for better UX
+      if (isCreating === 'folder') {
+        await createFolder(name);
+      } else if (isCreating === 'file') {
+        await createFile(name);
+      }
+    } else {
+      setIsCreating(null);
+    }
+  };
+
+  const InlineInput = ({ type, onCommit, onCancel }: { type: 'file' | 'folder', onCommit: (name: string) => void, onCancel: () => void }) => {
+    const [name, setName] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      inputRef.current?.focus();
+    }, []);
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') onCommit(name);
+      if (e.key === 'Escape') onCancel();
+    };
+
+    return (
+      <div className="vault-tree-item editing">
+        <div className="vault-tree-toggle"><div className="vault-tree-spacer" /></div>
+        <div className="vault-tree-icon">
+          {type === 'folder' ? <FolderOpenIcon /> : <FileIcon />}
+        </div>
+        <input
+          ref={inputRef}
+          className="vault-inline-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => onCommit(name)}
+        />
+      </div>
+    );
+  };
+
+  const handleRename = async () => {
+    if (!contextMenu.nodeId || !contextMenu.nodeType || !contextMenu.nodeName) return;
+    const newName = prompt('New name:', contextMenu.nodeName);
+    if (newName && newName !== contextMenu.nodeName) {
+      await renameNode(contextMenu.nodeId, contextMenu.nodeType, newName);
+    }
+    setContextMenu(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleDelete = async () => {
+    if (!contextMenu.nodeId || !contextMenu.nodeType) return;
+    if (confirm(`Are you sure you want to delete this ${contextMenu.nodeType}?`)) {
+      await deleteNode(contextMenu.nodeId, contextMenu.nodeType);
+    }
+    setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
   useEffect(() => {
@@ -226,7 +328,7 @@ export function VaultSidebar() {
           className={`vault-tree-item ${isClickable ? 'clickable' : ''}`}
           style={{ paddingLeft: `${level * 12}px` }}
           onClick={() => isClickable && toggleFolder(node.id)}
-          onContextMenu={(e) => handleContextMenu(e, node.type)}
+          onContextMenu={(e) => handleContextMenu(e, node)}
         >
           <div className="vault-tree-toggle">
             {isFolder ? (isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />) : <div className="vault-tree-spacer" />}
@@ -263,19 +365,43 @@ export function VaultSidebar() {
 
       <CustomScrollbar className="sidebar-content">
         <div className="vault-tree">
-          {vaultTree.children && vaultTree.children.map((node) => (
-            <FileTreeNode key={node.id} node={node} level={0} />
-          ))}
+          {isLoading ? (
+            <div className="vault-loading">Loading...</div>
+          ) : (
+            <>
+              {isCreating && (
+                <InlineInput 
+                  type={isCreating} 
+                  onCommit={handleCommitCreation} 
+                  onCancel={() => setIsCreating(null)} 
+                />
+              )}
+              {vaultTree.map((node) => (
+                <FileTreeNode key={node.id} node={node} level={0} />
+              ))}
+            </>
+          )}
         </div>
       </CustomScrollbar>
 
       <div className="vault-sidebar-bottom" ref={selectorRef}>
         <div className="vault-action-bar">
-          <button className="std-button small square" disabled title="New File">
+          <button 
+            className="std-button small square" 
+            title="New File"
+            onClick={handleCreateFile}
+          >
             <NewFileIcon />
           </button>
-          <button className="std-button small square" disabled title="New Folder">
+          <button 
+            className="std-button small square" 
+            title="New Folder"
+            onClick={handleCreateFolder}
+          >
             <NewFolderIcon />
+          </button>
+          <button className="std-button small square" disabled title="Upload">
+            <UploadIcon />
           </button>
           <button className="std-button small square" disabled title="Sort">
             <SortIcon />
@@ -289,7 +415,7 @@ export function VaultSidebar() {
           className="vault-selector-btn"
           onClick={() => setIsVaultSelectorOpen(!isVaultSelectorOpen)}
         >
-          <span className="vault-selector-name">{selectedVault}</span>
+          <span className="vault-selector-name">{selectedVault || 'Select Vault'}</span>
           <SelectorIcon />
         </button>
 
@@ -297,14 +423,14 @@ export function VaultSidebar() {
           <div className="vault-selector-dropdown">
             {vaults.map(vault => (
               <button 
-                key={vault} 
-                className={`vault-selector-item ${selectedVault === vault ? 'active' : ''}`}
+                key={vault.id} 
+                className={`vault-selector-item ${activeVaultId === vault.id ? 'active' : ''}`}
                 onClick={() => {
-                  setSelectedVault(vault);
+                  setActiveVaultId(vault.id);
                   setIsVaultSelectorOpen(false);
                 }}
               >
-                {vault}
+                {vault.name}
               </button>
             ))}
             <div className="vault-selector-divider" />
@@ -321,13 +447,13 @@ export function VaultSidebar() {
           ref={contextMenuRef}
           style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y }}
         >
-          <button className="context-menu-item">Rename</button>
-          <button className="context-menu-item">Move</button>
-          <button className="context-menu-item">Duplicate</button>
-          <button className="context-menu-item">Copy Path</button>
+          <button className="context-menu-item" onClick={handleRename}>Rename</button>
+          <button className="context-menu-item" disabled>Move</button>
+          <button className="context-menu-item" disabled>Duplicate</button>
+          <button className="context-menu-item" disabled>Copy Path</button>
           {contextMenu.nodeType === 'file' && <button className="context-menu-item">Convert</button>}
           <div className="context-menu-divider" />
-          <button className="context-menu-item danger">Delete</button>
+          <button className="context-menu-item danger" onClick={handleDelete}>Delete</button>
         </div>
       )}
     </div>

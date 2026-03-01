@@ -21,6 +21,7 @@ Quick reference for navigating the Mental Models codebase.
 - ADR-001: Tech stack (React+Vite, Supabase, OpenRouter)
 - ADR-002: Standardized Button component (Framer Motion 90s press)
 - ADR-003: Sidebar resize + view toggle pattern
+- ADR-008: Hierarchical Vault Folders and UUID Standardization
 
 ## Styling Rules
 - Paper-digital + neo-brutalist aesthetic

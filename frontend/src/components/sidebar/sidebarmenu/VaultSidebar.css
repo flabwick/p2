@@ -165,8 +165,24 @@
   flex: 1;
 }
 
-.vault-tree-children {
-  margin-left: 0;
+.vault-tree-item.editing {
+  background: var(--paper-cream);
+  padding: 2px 8px;
+  border: var(--border-thin);
+  border-color: var(--accent-deep-teal);
+}
+
+.vault-inline-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+  padding: 0;
+  margin: 0;
+  width: 100%;
 }
 
 /* --- Bottom Section (Vault Selector) --- */

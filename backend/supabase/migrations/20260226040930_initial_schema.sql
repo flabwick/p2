@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Vaults: top-level containers for files
 CREATE TABLE vaults (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -18,7 +18,7 @@ CREATE TABLE vaults (
 -- Files: individual items within a vault
 -- (Actual binary data stored in Supabase Storage bucket "vaults")
 CREATE TABLE files (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   vault_id UUID NOT NULL REFERENCES vaults(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   storage_path TEXT NOT NULL,          -- path within storage bucket
@@ -38,7 +38,7 @@ CREATE INDEX idx_files_owner_via_vault ON files USING BTREE (vault_id); -- cover
 
 -- Folders for organizing pockets (hierarchical)
 CREATE TABLE pocket_folders (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   parent_id UUID REFERENCES pocket_folders(id) ON DELETE CASCADE,
@@ -50,7 +50,7 @@ CREATE INDEX idx_pocket_folders_parent ON pocket_folders(parent_id);
 
 -- Pockets: the central work unit
 CREATE TABLE pockets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -75,7 +75,7 @@ CREATE INDEX idx_pockets_last_accessed ON pockets(last_accessed_at DESC);
 -- ============================================
 
 CREATE TABLE roles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   description TEXT,
@@ -101,7 +101,7 @@ CREATE INDEX idx_roles_pocket ON roles(pocket_id) WHERE scope = 'local';
 -- ============================================
 
 CREATE TABLE feeds (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pocket_id UUID NOT NULL REFERENCES pockets(id) ON DELETE CASCADE UNIQUE,
   role_id UUID REFERENCES roles(id) ON DELETE SET NULL,
   cards JSONB NOT NULL,                     -- array of Card objects (see spec)
@@ -118,7 +118,7 @@ CREATE INDEX idx_feeds_role ON feeds(role_id);
 -- ============================================
 
 CREATE TABLE desks (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pocket_id UUID NOT NULL REFERENCES pockets(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   feed_state JSONB NOT NULL,                 -- snapshot of cards at save time
@@ -132,7 +132,7 @@ CREATE INDEX idx_desks_pocket ON desks(pocket_id);
 -- ============================================
 
 CREATE TABLE generators (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   trigger_type TEXT NOT NULL CHECK (trigger_type IN ('cron', 'event', 'manual')),
@@ -157,7 +157,7 @@ ALTER TABLE pockets ADD CONSTRAINT fk_pockets_generator
 -- ============================================
 
 CREATE TABLE feed_operations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   feed_id UUID NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
   operation_batch JSONB NOT NULL,            -- the batch as received
   applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -172,7 +172,7 @@ CREATE INDEX idx_feed_operations_applied_at ON feed_operations(applied_at DESC);
 -- ============================================
 
 CREATE TABLE events (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   payload JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
