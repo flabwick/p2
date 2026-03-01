@@ -31,7 +31,7 @@
   /* removed flex: 1; display: flex; flex-direction: column; overflow-y: auto; */
   width: 100%;
   max-width: 900px; /* Exact same width as dock */
-  padding: 0 2rem; /* Side padding inside the 900px bound */
+  padding: 0 var(--space-lg); /* Side padding inside the 900px bound */
 }
 
 .pocket-viewer-root {

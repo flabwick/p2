@@ -8,7 +8,7 @@
   border-bottom: var(--border-medium);
   display: flex;
   align-items: center;
-  padding: 0 var(--space-md);
+  padding: 0;
   z-index: var(--z-header, 100);
   flex-shrink: 0;
 }
@@ -18,13 +18,23 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  height: 100%;
 }
 
 .header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  height: 100%;
   flex: 1;
+}
+
+.header-left {
+  gap: 0;
+}
+
+.header-right {
+  gap: var(--space-sm);
+  padding-right: var(--space-md);
 }
 
 .header-center {
@@ -37,7 +47,11 @@
 .header-controls {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  justify-content: center;
+  width: 48px;
+  height: 100%;
+  flex-shrink: 0;
+  border-right: 1px solid var(--ink-faint);
 }
 
 .header-divider {
@@ -45,6 +59,84 @@
   height: 24px;
   background-color: var(--border-color);
   margin: 0 var(--space-sm);
+}
+
+.header-title-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: var(--space-xs);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+  max-width: fit-content; /* Allow container to shrink-wrap the pair */
+}
+
+.header-title-container:hover {
+  background: var(--color-bg-hover, rgba(0,0,0,0.03));
+}
+
+.header-title-wrapper {
+  display: inline-grid;
+  vertical-align: top;
+  align-items: center;
+  max-width: 300px;
+  min-width: 0;
+}
+
+.header-title-input, .header-title-measure {
+  grid-area: 1 / 1;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0;
+  margin: 0;
+  white-space: pre; /* Essential for matching width of spaces */
+  border: none;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.header-title-input {
+  background: transparent;
+  color: var(--color-text-primary, #111);
+  width: 100%;
+  min-width: 0;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-title-measure {
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.header-title-input:focus {
+  cursor: text;
+}
+
+.header-title-input:focus {
+  cursor: text;
+}
+
+.header-title-dropdown {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary, #999);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+}
+
+.header-title-dropdown:hover {
+  color: var(--color-text-secondary, #666);
+  background: rgba(0,0,0,0.05);
 }
 
 .header-view-label {

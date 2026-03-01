@@ -350,18 +350,31 @@
 /* Disabled state for buttons */
 .std-button:disabled,
 .view-action-btn:disabled,
-.feed-action-btn:disabled {
-  opacity: 0.5;
+.feed-action-btn:disabled,
+.sidebar-tab-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  pointer-events: none;
+  filter: grayscale(0.5);
 }
 
-/* Focus states */
+/* Focus states - Removed visible outline per design request */
 .std-button:focus,
 .role-dropdown-btn:focus,
-.view-toggle-btn:focus {
-  outline: 2px solid var(--accent-deep-teal);
-  outline-offset: 2px;
+.view-toggle-btn:focus,
+.sidebar-tab-btn:focus {
+  outline: none;
+}
+
+/* Toggled state - Highlights within the bounds */
+.std-button.toggled {
+  background-color: var(--accent-deep-teal-faded);
+  border-color: var(--accent-deep-teal);
+  color: var(--accent-deep-teal);
+}
+
+.std-button.toggled:hover {
+  background-color: var(--accent-deep-teal-faded);
+  opacity: 0.9;
 }
 
 /* Active states */

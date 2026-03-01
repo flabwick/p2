@@ -13,7 +13,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 1000;
+  z-index: 1000; /* Overlap everything when expanded */
+}
+
+.sidebar-container.collapsed {
+  top: 60px;
+  height: calc(100% - 60px);
+  z-index: 10; /* Below header when collapsed */
 }
 
 /* ===============================================

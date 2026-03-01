@@ -53,3 +53,24 @@ git rm -r --cached node_modules  # Fix: remove committed deps
 git commit --amend --no-edit
 git push origin feature/beginnings
 git checkout -b feature/initial-structure-sprint
+
+---
+
+## 2026-02-28 | Sprint: initial-structure-sprint Complete
+
+**Branch:** `feature/initial-structure-sprint`  
+**Status:** Merged to remote ✅
+
+### Scope
+- Layout system foundation (Desk/Feed/Log viewers, Header/Footer/Sidebar)
+- UI component library start (Button with physical feedback)
+- Documentation architecture (INDEX, ADR-004→007)
+- Backend & shared directory scaffolding
+- Package reorganization (frontend/, shared/ split)
+
+### Files Changed
+- 12 modified (layout components, styles, docs, root config)
+- 15 added (backend/, demos/, docs/, frontend/src/lib/, types/, etc.)
+
+### Next Branch
+`feature/frontend-rebuild`

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { SidebarHeader } from './SidebarHeader'
 import { SidebarMenu } from './SidebarMenu'
 import { TabBar } from './TabBar'
+import { Tab } from '../../types/tabs'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -9,9 +10,22 @@ interface SidebarProps {
   onClose: () => void
   onWidthChange?: (width: number) => void
   initialWidth?: number
+  tabs: Tab[]
+  activeTabId: string
+  onSelectTab: (id: string) => void
+  onAddTab: () => void
 }
 
-export function Sidebar({ isOpen, onClose, onWidthChange, initialWidth = 320 }: SidebarProps) {
+export function Sidebar({ 
+  isOpen, 
+  onClose, 
+  onWidthChange, 
+  initialWidth = 320,
+  tabs,
+  activeTabId,
+  onSelectTab,
+  onAddTab
+}: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(initialWidth)
   const [isResizing, setIsResizing] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -61,19 +75,25 @@ export function Sidebar({ isOpen, onClose, onWidthChange, initialWidth = 320 }: 
 
   return (
     <>
+      <div 
+        className={`sidebar-container ${!isOpen ? 'collapsed' : ''}`} 
+        style={{ width: `${isOpen ? sidebarWidth : 48}px` }}
+      >
+        {isOpen && <SidebarHeader onClose={onClose} />}
+        {isOpen && <SidebarMenu />}
+        <TabBar 
+          tabs={tabs} 
+          activeTabId={activeTabId} 
+          onSelectTab={onSelectTab} 
+          onAddTab={onAddTab} 
+        />
+      </div>
       {isOpen && (
-        <>
-          <div className="sidebar-container" style={{ width: `${sidebarWidth}px` }}>
-            <SidebarHeader onClose={onClose} />
-            <SidebarMenu />
-            <TabBar />
-          </div>
-          <div
-            className="sidebar-resize-handle"
-            style={{ left: `${sidebarWidth - 8}px` }}
-            onMouseDown={handleMouseDown}
-          />
-        </>
+        <div
+          className="sidebar-resize-handle"
+          style={{ left: `${sidebarWidth - 8}px` }}
+          onMouseDown={handleMouseDown}
+        />
       )}
     </>
   )

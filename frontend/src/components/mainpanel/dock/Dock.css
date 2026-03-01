@@ -8,7 +8,7 @@
   align-items: center;
   width: 100%;
   max-width: 900px; /* Exact same bound as content */
-  padding: 0 0 8px 0; /* Align side edges exactly with content bounds */
+  padding: 0 var(--space-sm) 0 var(--space-sm); /* Half of content's side margin; 0 bottom */
   background-color: transparent;
   flex-shrink: 0;
 }
@@ -20,6 +20,7 @@
   width: 100%;
   background-color: var(--paper-ivory);
   border: var(--border-medium);
+  border-bottom: none; /* Remove bottom border to sit flush with screen edge */
   border-radius: 0;
   padding: 0; /* Padding will be handled by internal parts */
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
@@ -80,29 +81,138 @@
 
 .live-dock-container {
   display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
-  max-width: 700px;
+  max-width: 850px;
   background-color: var(--paper-cream);
   border: var(--border-thin);
-  border-radius: 8px;
-  padding: 2px 4px;
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.live-dock-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--ink-faint);
+  height: 36px;
+}
+
+.live-dock-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  margin-right: var(--space-md);
+  height: 100%;
+}
+
+.tab-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+  /* Creative fade effect to indicate more content */
+  mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+}
+
+.tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  background-color: var(--paper-kraft) !important;
+  border-color: transparent !important;
+  color: var(--ink-medium) !important;
+  font-size: 0.7rem !important;
+  opacity: 0.8;
+  min-width: 28px !important;
+  height: 28px !important;
+  flex-shrink: 0;
+}
+
+.tab-btn:hover {
+  background-color: var(--paper-cream) !important;
+  opacity: 1;
+}
+
+.tab-btn.active {
+  background-color: var(--accent-deep-teal-faded) !important;
+  color: var(--accent-deep-teal) !important;
+  border-color: var(--accent-deep-teal) !important;
+  opacity: 1;
+}
+
+.tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  padding-left: 4px;
+  border-left: 1px solid var(--ink-faint);
+  flex-shrink: 0;
+  height: 28px;
+}
+
+.live-dock-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 28px;
 }
 
 .live-editor-wrapper {
-  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
 }
 
 .live-editor-input {
-  width: 100%;
+  flex: 1;
   background: transparent;
   border: none;
   outline: none;
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   color: var(--ink-dark);
-  padding: 2px 8px;
+  padding: 4px;
+  resize: none;
+  line-height: 1.5;
+  max-height: calc(1.5em * 5 + 8px);
+  overflow-y: auto;
+  display: block;
+  min-height: 32px;
+}
+
+/* Custom scrollbar styling resembling CustomScrollbar.css */
+.live-editor-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.live-editor-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.live-editor-input::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 0;
+}
+
+.live-editor-input::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .enter-btn {
@@ -110,7 +220,8 @@
   background: transparent !important;
   color: var(--ink-medium) !important;
   padding: 0 4px !important;
-  min-height: 24px !important;
+  min-height: 28px !important;
+  width: 28px !important;
 }
 
 .enter-btn:hover {
@@ -142,16 +253,17 @@
 }
 
 .refresh-button {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 8px rgba(0, 102, 102, 0.15);
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 2px !important;
+  box-shadow: 0 4px 12px rgba(0, 102, 102, 0.2);
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 0 4px;
 }
 
 .refresh-button svg {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
 }
 
 .refresh-button:hover {
@@ -161,46 +273,4 @@
 
 .refresh-button:active {
   transform: scale(0.95) translateY(1px);
-}
-
-/* 3. Selector Part (Bottom) */
-.dock-selector-part {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: var(--space-xs) var(--space-md) var(--space-sm);
-}
-
-/* Subview Toggler Styles */
-.dock-subview-toggle {
-  display: flex;
-  align-items: center;
-  background-color: var(--paper-kraft);
-  border: var(--border-thin);
-  border-radius: 20px;
-  padding: 2px;
-  gap: 2px;
-}
-
-.subview-button {
-  padding: 4px 12px;
-  border: none;
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--ink-medium);
-  cursor: pointer;
-  border-radius: 16px;
-  transition: all 0.2s ease;
-}
-
-.subview-button:hover {
-  color: var(--ink-dark);
-}
-
-.subview-button.active {
-  background-color: var(--paper-ivory);
-  color: var(--accent-deep-teal);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }

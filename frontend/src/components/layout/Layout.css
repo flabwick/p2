@@ -17,6 +17,8 @@
   font-family: var(--font-sans);
   color: var(--ink-dark);
   overflow: hidden;
+  position: relative;
+  z-index: 20;
 }
 
 /* Sidebar open state - handled by inline styles for dynamic width */
