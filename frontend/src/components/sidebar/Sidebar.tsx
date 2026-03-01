@@ -51,7 +51,7 @@ export function Sidebar({
       if (!isResizing) return
       
       const deltaX = e.clientX - startX.current
-      const newWidth = Math.max(200, Math.min(600, startWidth.current + deltaX))
+      const newWidth = Math.max(280, Math.min(600, startWidth.current + deltaX))
       setSidebarWidth(newWidth)
     }
 

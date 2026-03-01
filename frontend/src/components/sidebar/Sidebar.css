@@ -8,6 +8,7 @@
   left: 0;
   /* Width is now set dynamically via inline style */
   height: 100%;
+  min-width: 280px;
   background-color: var(--paper-ivory);
   border-right: var(--border-medium);
   display: flex;
@@ -17,6 +18,7 @@
 }
 
 .sidebar-container.collapsed {
+  min-width: 48px;
   top: 60px;
   height: calc(100% - 60px);
   z-index: 10; /* Below header when collapsed */
