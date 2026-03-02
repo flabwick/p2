@@ -36,6 +36,8 @@ export interface FileNode {
   name: string
   type: FileNodeType
   extension?: string
+  mime_type?: string
+  size?: number
   parentId?: string
   children?: FileNode[]
 }

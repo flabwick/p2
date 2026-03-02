@@ -64,12 +64,24 @@
 .header-title-container {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 0; /* Tighten gap between name and extension */
   margin-left: var(--space-xs);
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   transition: background 0.2s;
-  max-width: fit-content; /* Allow container to shrink-wrap the pair */
+  max-width: fit-content;
+  position: relative;
+}
+
+.header-title-extension {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem; /* Smaller than the base title */
+  color: var(--ink-faint); /* Secondary type text */
+  pointer-events: none;
+  user-select: none;
+  padding-left: 2px;
+  margin-top: 2px; /* Slight alignment adjustment for baseline feel */
 }
 
 .header-title-container:hover {
@@ -82,6 +94,12 @@
   align-items: center;
   max-width: 300px;
   min-width: 0;
+  position: relative;
+}
+
+.header-title-wrapper.duplicate-error .header-title-input {
+  color: #ef4444;
+  text-decoration: underline wavy #ef4444;
 }
 
 .header-title-input, .header-title-measure {
@@ -91,7 +109,7 @@
   font-size: 1.1rem;
   padding: 0;
   margin: 0;
-  white-space: pre; /* Essential for matching width of spaces */
+  white-space: pre;
   border: none;
   letter-spacing: normal;
   text-transform: none;
@@ -118,25 +136,29 @@
   cursor: text;
 }
 
-.header-title-input:focus {
-  cursor: text;
+.header-title-error-toast {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background-color: #ef4444;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
-.header-title-dropdown {
-  background: transparent;
-  border: none;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-tertiary, #999);
-  cursor: pointer;
-  border-radius: var(--radius-xs);
-}
-
-.header-title-dropdown:hover {
-  color: var(--color-text-secondary, #666);
-  background: rgba(0,0,0,0.05);
+.header-title-error-toast::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  border: 6px solid transparent;
+  border-bottom-color: #ef4444;
 }
 
 .header-view-label {

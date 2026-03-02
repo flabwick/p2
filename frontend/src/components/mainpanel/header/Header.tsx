@@ -1,7 +1,9 @@
 import './Header.css'
 import { motion } from 'framer-motion'
 import { MainPanelView, PocketSubView } from '../dock/Dock'
-import React, { useRef } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
+import { Tab } from '../../../types/tabs'
+import { useVaultStore } from '../../../features/vault/store/vaultStore'
 
 // Button component using v1 CSS classes
 const Button = ({ children, onClick, active, title, className = '', variant = 'primary' }: any) => {
@@ -19,12 +21,6 @@ const Button = ({ children, onClick, active, title, className = '', variant = 'p
   );
 };
 
-const ChevronDownIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m6 9 6 6 6-6"/>
-  </svg>
-)
-
 interface HeaderProps {
   onMenuToggle: () => void
   onTabsToggle: () => void
@@ -36,6 +32,7 @@ interface HeaderProps {
   onPocketViewChange: (view: PocketSubView) => void
   title?: string
   onTitleChange?: (title: string) => void
+  activeTab?: Tab
 }
 
 export function Header({
@@ -48,9 +45,48 @@ export function Header({
   pocketView,
   onPocketViewChange,
   title = 'Untitled',
-  onTitleChange
+  onTitleChange,
+  activeTab
 }: HeaderProps) {
   const titleInputRef = useRef<HTMLInputElement>(null)
+  
+  const stripExt = (name: string) => {
+    if (activeTab?.type !== 'file') return name;
+    const ext = activeTab.fileExtension;
+    if (ext && name.endsWith(`.${ext}`)) {
+      return name.slice(0, -(ext.length + 1));
+    }
+    const parts = name.split('.');
+    if (parts.length > 1) {
+      parts.pop();
+      return parts.join('.');
+    }
+    return name;
+  };
+
+  const [localTitle, setLocalTitle] = useState(stripExt(title))
+  const [isDup, setIsDup] = useState(false)
+  
+  const { files, checkDuplicate, renameNode } = useVaultStore()
+  const file = activeTab?.type === 'file' ? files.find(f => f.id === activeTab.fileId) : null
+
+  useEffect(() => {
+    setLocalTitle(stripExt(title))
+  }, [title, activeTab?.type, activeTab?.fileExtension])
+
+  useEffect(() => {
+    if (activeTab?.type === 'file' && file) {
+      const extension = activeTab.fileExtension ? `.${activeTab.fileExtension}` : '';
+      const fullTitle = localTitle.trim() + extension;
+      if (fullTitle && fullTitle.toLowerCase() !== file.name.toLowerCase()) {
+        setIsDup(checkDuplicate(fullTitle, 'file', file.folder_id || null, file.id))
+      } else {
+        setIsDup(false)
+      }
+    } else {
+      setIsDup(false)
+    }
+  }, [localTitle, activeTab, file, checkDuplicate])
 
   const handleTitleClick = () => {
     if (titleInputRef.current) {
@@ -58,8 +94,30 @@ export function Header({
     }
   }
 
+  const commitRename = async () => {
+    const trimmedBase = localTitle.trim()
+    const extension = activeTab?.type === 'file' && activeTab.fileExtension ? `.${activeTab.fileExtension}` : '';
+    const fullNewTitle = trimmedBase + extension;
+    
+    if (!trimmedBase || isDup) {
+      setLocalTitle(stripExt(title))
+      return
+    }
+
+    if (fullNewTitle !== title) {
+      onTitleChange?.(fullNewTitle)
+      
+      if (activeTab?.type === 'file' && activeTab.fileId) {
+        await renameNode(activeTab.fileId, 'file', fullNewTitle)
+      }
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      titleInputRef.current?.blur()
+    } else if (e.key === 'Escape') {
+      setLocalTitle(stripExt(title))
       titleInputRef.current?.blur()
     }
   }
@@ -83,22 +141,28 @@ export function Header({
           )}
           
           <div className="header-title-container">
-            <div className="header-title-wrapper">
+            <div className={`header-title-wrapper ${isDup ? 'duplicate-error' : ''}`}>
               <input 
                 ref={titleInputRef}
                 className="header-title-input" 
-                value={title} 
-                onChange={(e) => onTitleChange?.(e.target.value)}
+                value={localTitle} 
+                onChange={(e) => setLocalTitle(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onBlur={commitRename}
                 onClick={handleTitleClick}
                 spellCheck={false}
                 size={1}
               />
-              <span className="header-title-measure">{title || ' '}</span>
+              <span className="header-title-measure">{localTitle || ' '}</span>
             </div>
-            <button className="header-title-dropdown">
-              <ChevronDownIcon />
-            </button>
+            {activeTab?.type === 'file' && activeTab.fileExtension && (
+              <span className="header-title-extension">.{activeTab.fileExtension}</span>
+            )}
+            {isDup && (
+              <div className="header-title-error-toast">
+                Duplicate name in this folder
+              </div>
+            )}
           </div>
         </div>
         

@@ -9,7 +9,8 @@ interface VaultState {
   files: VaultFile[]
   isLoading: boolean
   error: string | null
-  isCreating: 'file' | 'folder' | null
+  isCreating: { type: 'file' | 'folder', parentId?: string } | null
+  isEditing: { id: string, type: 'file' | 'folder', name: string } | null
 
   // Basic Actions
   setVaults: (vaults: Vault[]) => void
@@ -18,7 +19,8 @@ interface VaultState {
   setFiles: (files: VaultFile[]) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
-  setIsCreating: (type: 'file' | 'folder' | null) => void
+  setIsCreating: (config: { type: 'file' | 'folder', parentId?: string } | null) => void
+  setIsEditing: (config: { id: string, type: 'file' | 'folder', name: string } | null) => void
 
   // Complex Actions (Business Logic)
   fetchVaults: () => Promise<void>
@@ -28,6 +30,8 @@ interface VaultState {
   renameNode: (id: string, type: 'folder' | 'file', newName: string) => Promise<void>
   moveNode: (id: string, type: 'folder' | 'file', targetFolderId: string | null) => Promise<void>
   deleteNode: (id: string, type: 'folder' | 'file') => Promise<void>
+  uploadFile: (file: File, folderId?: string) => Promise<any>
+  checkDuplicate: (name: string, type: 'folder' | 'file', parentId: string | null, excludeId?: string) => boolean
 }
 
 export const useVaultStore = create<VaultState>((set, get) => ({
@@ -38,6 +42,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   isLoading: false,
   error: null,
   isCreating: null,
+  isEditing: null,
 
   setVaults: (vaults) => set({ vaults }),
   setActiveVaultId: (activeVaultId) => set({ activeVaultId }),
@@ -46,6 +51,24 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   setIsCreating: (isCreating) => set({ isCreating }),
+  setIsEditing: (isEditing) => set({ isEditing }),
+
+  checkDuplicate: (name, type, parentId, excludeId) => {
+    const trimmedName = name.trim().toLowerCase();
+    if (type === 'folder') {
+      return get().folders.some(f => 
+        f.id !== excludeId &&
+        (f.name || '').trim().toLowerCase() === trimmedName && 
+        (f.parent_id || null) === (parentId || null)
+      );
+    } else {
+      return get().files.some(f => 
+        f.id !== excludeId &&
+        (f.name || '').trim().toLowerCase() === trimmedName && 
+        (f.folder_id || null) === (parentId || null)
+      );
+    }
+  },
 
   fetchVaults: async () => {
     set({ isLoading: true, error: null })
@@ -174,6 +197,14 @@ export const useVaultStore = create<VaultState>((set, get) => ({
 
   deleteNode: async (id: string, type: 'folder' | 'file') => {
     try {
+      // If it's a file, delete from storage too
+      if (type === 'file') {
+        const file = get().files.find(f => f.id === id)
+        if (file) {
+          await supabase.storage.from('vaults').remove([file.storage_path])
+        }
+      }
+
       const table = type === 'folder' ? 'vault_folders' : 'files'
       const { error } = await supabase.from(table).delete().eq('id', id)
       if (error) throw error
@@ -184,6 +215,54 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       }
     } catch (err: any) {
       set({ error: err.message })
+    }
+  },
+
+  uploadFile: async (file: File, folderId?: string) => {
+    try {
+      let vaultId = get().activeVaultId
+      if (!vaultId) {
+        const { data: authData } = await supabase.auth.getUser()
+        const { data: vault, error: vError } = await supabase
+          .from('vaults')
+          .insert([{ name: 'Main Vault', owner_id: authData.user?.id }])
+          .select().single()
+        if (vError) throw vError
+        vaultId = vault.id
+        set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
+      }
+
+      const timestamp = Date.now()
+      const storagePath = `${vaultId}/${timestamp}_${file.name}`
+
+      // Upload to Storage
+      const { error: uploadError } = await supabase.storage
+        .from('vaults')
+        .upload(storagePath, file)
+      
+      if (uploadError) throw uploadError
+
+      // Insert record in DB
+      const { data, error: dbError } = await supabase
+        .from('files')
+        .insert([{
+          name: file.name,
+          vault_id: vaultId,
+          folder_id: folderId,
+          storage_path: storagePath,
+          mime_type: file.type,
+          size: file.size,
+          metadata: {}
+        }])
+        .select().single()
+
+      if (dbError) throw dbError
+
+      set(state => ({ files: [...state.files, data as VaultFile] }))
+      return data
+    } catch (err: any) {
+      set({ error: err.message })
+      throw err
     }
   },
 }))

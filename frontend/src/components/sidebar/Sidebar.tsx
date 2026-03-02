@@ -13,7 +13,11 @@ interface SidebarProps {
   tabs: Tab[]
   activeTabId: string
   onSelectTab: (id: string) => void
+  onReorderTabs: (tabs: Tab[]) => void
   onAddTab: () => void
+  onOpenFile: (fileId: string, title: string) => void
+  onCloseTab: (id: string) => void
+  onDuplicateTab: (id: string) => void
 }
 
 export function Sidebar({ 
@@ -24,7 +28,11 @@ export function Sidebar({
   tabs,
   activeTabId,
   onSelectTab,
-  onAddTab
+  onReorderTabs,
+  onAddTab,
+  onOpenFile,
+  onCloseTab,
+  onDuplicateTab
 }: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState(initialWidth)
   const [isResizing, setIsResizing] = useState(false)
@@ -80,12 +88,15 @@ export function Sidebar({
         style={{ width: `${isOpen ? sidebarWidth : 48}px` }}
       >
         {isOpen && <SidebarHeader onClose={onClose} />}
-        {isOpen && <SidebarMenu />}
+        {isOpen && <SidebarMenu onOpenFile={onOpenFile} />}
         <TabBar 
           tabs={tabs} 
           activeTabId={activeTabId} 
           onSelectTab={onSelectTab} 
+          onReorderTabs={onReorderTabs}
           onAddTab={onAddTab} 
+          onCloseTab={onCloseTab}
+          onDuplicateTab={onDuplicateTab}
         />
       </div>
       {isOpen && (

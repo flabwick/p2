@@ -31,7 +31,7 @@ export function MainPanel({
   const renderViewer = () => {
     switch (activeTab.type) {
       case 'pocket': return <PocketViewer activeSubView={pocketView} />
-      case 'file': return <FileViewer />
+      case 'file': return <FileViewer activeTab={activeTab} />
       case 'role': return <RoleViewer />
       case 'welcome': return <WelcomeSelector onSelect={onUpdateTabType} />
       default: return <PocketViewer activeSubView={pocketView} />
@@ -51,6 +51,7 @@ export function MainPanel({
         onPocketViewChange={setPocketView}
         title={activeTab.title}
         onTitleChange={onUpdateTabTitle}
+        activeTab={activeTab}
       />
       
       <div className="main-panel-body" style={{ marginLeft: `${sidebarOffset}px` }}>

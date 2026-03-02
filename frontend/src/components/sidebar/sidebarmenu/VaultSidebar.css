@@ -102,6 +102,8 @@
   flex: 1;
   padding: var(--space-sm) var(--space-md);
   min-height: 0; /* Critical for overflow-y: auto to work in flex container */
+  display: flex;
+  flex-direction: column;
 }
 
 .vault-tree {
@@ -109,6 +111,8 @@
   flex-direction: column;
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  flex: 1;
+  min-height: 100px;
 }
 
 .vault-tree-item {
@@ -121,12 +125,25 @@
   border-radius: 2px;
   transition: all 0.1s ease;
   user-select: none;
+  position: relative;
 }
 
 .vault-tree-item:hover {
   background: var(--paper-cream);
   color: var(--accent-deep-teal);
 }
+
+/* --- File Type Colors --- */
+
+.file-image .vault-tree-icon { color: #3b82f6; }
+.file-pdf .vault-tree-icon { color: #ef4444; }
+.file-book .vault-tree-icon { color: #10b981; }
+.file-text .vault-tree-icon { color: #f59e0b; }
+
+.file-image:hover { background-color: rgba(59, 130, 246, 0.08) !important; }
+.file-pdf:hover { background-color: rgba(239, 68, 68, 0.08) !important; }
+.file-book:hover { background-color: rgba(16, 185, 129, 0.08) !important; }
+.file-text:hover { background-color: rgba(245, 158, 11, 0.08) !important; }
 
 .vault-tree-toggle {
   display: flex;
@@ -309,6 +326,19 @@
   color: var(--accent-deep-teal);
 }
 
+.context-menu-file-info {
+  padding: 6px 12px 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--ink-light);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--paper-kraft);
+  margin-bottom: 4px;
+}
+
 .context-menu-item.danger:hover {
   background: #fee2e2;
   color: #ef4444;
@@ -318,4 +348,240 @@
   height: 1px;
   background: var(--border-color, var(--ink-faint));
   margin: 4px 0;
+}
+
+/* --- Move Popup --- */
+
+.vault-move-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  backdrop-filter: blur(1px);
+}
+
+.vault-move-popup {
+  width: 90%;
+  max-width: 280px;
+  max-height: 80%;
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.vault-move-header {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-thin);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-dark);
+}
+
+.vault-move-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-medium);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.vault-move-close:hover {
+  color: var(--ink-dark);
+}
+
+.vault-move-search {
+  padding: var(--space-sm);
+  border-bottom: var(--border-thin);
+}
+
+.vault-move-list-container {
+  flex: 1;
+  min-height: 0;
+  max-height: 300px;
+}
+
+.vault-move-list {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0;
+}
+
+.vault-move-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.1s ease;
+  width: 100%;
+  min-width: 0;
+}
+
+.vault-move-item:hover {
+  background: var(--paper-cream);
+}
+
+.vault-move-item.selected {
+  background: var(--accent-deep-teal-faded);
+  border-left: 2px solid var(--accent-deep-teal);
+  padding-left: 6px;
+}
+
+.vault-move-item-path {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--ink-dark);
+  white-space: nowrap;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none; /* Hide scrollbar for cleaner look but still allow scrolling */
+}
+
+.vault-move-item-path::-webkit-scrollbar {
+  display: none;
+}
+
+.vault-move-actions {
+  padding: var(--space-sm) var(--space-md);
+  border-top: var(--border-thin);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  background: var(--paper-cream);
+}
+
+/* --- Duplicate Detection & Conflict UI --- */
+
+.vault-tree-item-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.vault-tree-item.duplicate-error {
+  border: 1px solid #ef4444;
+  background: #fef2f2;
+}
+
+.vault-inline-error-toast {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  z-index: 10;
+  animation: slideInDown 0.2s ease-out;
+}
+
+@keyframes slideInDown {
+  from { transform: translate(-50%, 5px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.vault-move-popup.conflict {
+  max-width: 240px;
+}
+
+.vault-move-popup.conflict .vault-move-actions {
+  justify-content: center;
+  padding: var(--space-sm);
+}
+
+.vault-conflict-body {
+  padding: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--ink-dark);
+}
+
+.vault-conflict-body p {
+  margin: 0 0 8px 0;
+}
+
+.std-button.primary.danger {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.std-button.primary.danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* --- Drag & Drop --- */
+
+.vault-tree-item.drag-over {
+  background: var(--accent-deep-teal-faded) !important;
+}
+
+.vault-tree-item.drag-over::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px dashed var(--accent-deep-teal);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* When followed by an expanded children area, remove bottom border of the header pseudo-element */
+.vault-tree-item.drag-over:has(+ .vault-tree-children.drag-over-area)::after {
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+}
+
+.vault-tree-children.drag-over-area {
+  background: var(--accent-deep-teal-faded);
+  border: 2px dashed var(--accent-deep-teal);
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  margin-left: 0;
+  padding-left: 0;
+  min-height: 12px; /* Ensure highlight is visible even if empty */
+}
+
+.vault-tree.drag-over-root {
+  background: var(--accent-deep-teal-faded);
+  outline: 2px dashed var(--accent-deep-teal);
+  outline-offset: -2px;
 }

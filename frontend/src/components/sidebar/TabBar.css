@@ -11,13 +11,13 @@
   height: calc(100% - 60px); /* Fill remaining height */
   flex-shrink: 0;
   background-color: var(--paper-cream);
-  border-left: 2px solid #d0d0d0; /* Solid grayish separator line */
+  border-left: var(--border-thin);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: var(--space-sm) 0;
-  gap: var(--space-xs);
-  z-index: 5; /* Below header but above content */
+  gap: var(--space-sm);
+  z-index: 5;
 }
 
 .sidebar-container.collapsed .sidebar-tabs {
@@ -26,17 +26,18 @@
 }
 
 .tab-item {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%; /* Circular shape */
+  width: 34px;
+  height: 34px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
-  background-color: var(--paper-oatmeal);
+  transition: all 0.2s ease;
+  background-color: transparent;
   color: var(--ink-medium);
   position: relative;
+  border: 1px solid transparent;
 }
 
 .tab-item:hover {
@@ -45,11 +46,17 @@
 }
 
 .tab-item.active {
-  background-color: var(--accent-deep-teal);
-  color: var(--paper-ivory);
-  box-shadow: 
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: var(--paper-ivory);
+  color: var(--accent-deep-teal);
+  border: var(--border-thin);
+  box-shadow: 2px 2px 0px var(--paper-kraft);
+  transform: translate(-1px, -1px);
+}
+
+.tab-item.dragging {
+  cursor: grabbing;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 .tab-number {
@@ -61,23 +68,97 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 0.5px; /* Nudge down for visual centering */
 }
 
 .add-tab {
-  background-color: var(--paper-kraft);
-  color: var(--ink-medium);
+  margin-top: auto;
+  border: 1px dashed var(--ink-faint);
+  background-color: transparent;
 }
 
 .add-tab:hover {
+  border-style: solid;
+  border-color: var(--accent-deep-teal);
   background-color: var(--paper-linen);
   color: var(--accent-deep-teal);
 }
 
-.add-tab.active {
-  background-color: var(--accent-deep-teal);
+/* ===============================================
+   CONTEXT MENU (Consistent with other menus)
+   =============================================== */
+
+.vault-context-menu {
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 10000; /* Ensure it is above everything (resize handle is 1001, sidebar is 1000) */
+  min-width: 120px;
+  padding: 4px 0;
+  animation: fadeIn 0.1s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.context-menu-item {
+  padding: 8px 12px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  width: 100%;
+}
+
+.context-menu-item:hover {
+  background: var(--paper-cream);
+  color: var(--accent-deep-teal);
+}
+
+.context-menu-item.danger:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: var(--paper-kraft);
+  margin: 4px 0;
+}
+
+/* ===============================================
+   TOOLTIP
+   =============================================== */
+
+.sidebar-tab-tooltip {
+  background-color: var(--ink-dark);
   color: var(--paper-ivory);
-  box-shadow: 
-    inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 10001; /* Above context menu just in case, though they don't overlap */
+  white-space: nowrap;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(-50%) translateX(-5px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(-50%) translateX(0); 
+  }
 }
