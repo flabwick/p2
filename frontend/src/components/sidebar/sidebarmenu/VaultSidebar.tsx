@@ -179,6 +179,7 @@ import { FileNode } from '@/shared/types/vault';
 import { useVaultStore } from '@/features/vault/store/vaultStore';
 import { useShallow } from 'zustand/shallow';
 import { VaultFolder } from '@/shared/types/vault';
+import { Tab } from '../../../types/tabs';
 
 interface ContextMenuState {
   x: number;
@@ -211,10 +212,11 @@ interface ConflictState {
 // --- Component ---
 
 interface VaultSidebarProps {
-  onOpenFile: (fileId: string, title: string) => void;
+  onOpenFile: (fileId: string, title: string, forceNewTab?: boolean) => void;
+  tabs: Tab[];
 }
 
-export function VaultSidebar({ onOpenFile }: VaultSidebarProps) {
+export function VaultSidebar({ onOpenFile, tabs }: VaultSidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({ 'root': true });
   const [isVaultSelectorOpen, setIsVaultSelectorOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({ 
@@ -918,9 +920,18 @@ export function VaultSidebar({ onOpenFile }: VaultSidebarProps) {
           style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y }}
         >
           {contextMenu.nodeType === 'file' && (
-            <div className="context-menu-file-info">
-              {contextMenu.nodeName}
-            </div>
+            <>
+              <div className="context-menu-file-info">
+                {contextMenu.nodeName}
+              </div>
+              {tabs.some(tab => tab.fileId === contextMenu.nodeId) && (
+                <button className="context-menu-item" onClick={() => {
+                  onOpenFile(contextMenu.nodeId!, contextMenu.nodeName!, true);
+                  setContextMenu(prev => ({ ...prev, visible: false }));
+                }}>Open in New Tab</button>
+              )}
+              <div className="context-menu-divider" />
+            </>
           )}
           {contextMenu.nodeType === 'folder' && (
             <>

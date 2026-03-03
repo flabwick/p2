@@ -1,11 +1,24 @@
 import React from 'react';
 import { Tab } from '../../../types/tabs';
+import { Editor } from '../../../features/editor';
 
 interface FileViewerProps {
   activeTab: Tab;
 }
 
 export const FileViewer: React.FC<FileViewerProps> = ({ activeTab }) => {
+  const isMarkdown = activeTab.fileExtension?.toLowerCase() === 'md';
+
+  if (isMarkdown) {
+    return (
+      <Editor 
+        title={activeTab.title} 
+        initialContent={`# ${activeTab.title}\n\nStart editing your markdown file here...`}
+        onSave={(content) => console.log('Saving content:', content)}
+      />
+    );
+  }
+
   return (
     <div className="viewer-container">
       <h2>File Viewer</h2>

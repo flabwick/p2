@@ -100,7 +100,14 @@ const Layout = ({ children }: LayoutProps) => {
     setTabs(newTabs)
   }
 
-  const handleOpenFile = (fileId: string, title: string) => {
+  const handleOpenFile = (fileId: string, title: string, forceNewTab = false) => {
+    if (!forceNewTab) {
+      const existingTab = tabs.find(tab => tab.fileId === fileId)
+      if (existingTab) {
+        setActiveTabId(existingTab.id)
+        return
+      }
+    }
     const fileExtension = title.split('.').pop()
     const newId = Date.now().toString()
     const newTab: Tab = { 

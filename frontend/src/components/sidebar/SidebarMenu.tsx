@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { Tab } from '../../types/tabs';
 import { ToggleMenu, MenuState, PocketSidebar, VaultSidebar, RoleSidebar, MoreSidebar } from './sidebarmenu/index';
 import './SidebarMenu.css'
 
 interface SidebarMenuProps {
-  onOpenFile: (fileId: string, title: string) => void
+  onOpenFile: (fileId: string, title: string, forceNewTab?: boolean) => void;
+  tabs: Tab[];
 }
 
-export function SidebarMenu({ onOpenFile }: SidebarMenuProps) {
+export function SidebarMenu({ onOpenFile, tabs }: SidebarMenuProps) {
   const [activeMenu, setActiveMenu] = useState<MenuState>('pocket');
 
   const renderSidebarContent = () => {
@@ -14,7 +16,7 @@ export function SidebarMenu({ onOpenFile }: SidebarMenuProps) {
       case 'pocket':
         return <PocketSidebar />;
       case 'vault':
-        return <VaultSidebar onOpenFile={onOpenFile} />;
+        return <VaultSidebar onOpenFile={onOpenFile} tabs={tabs} />;
       case 'role':
         return <RoleSidebar />;
       case 'more':

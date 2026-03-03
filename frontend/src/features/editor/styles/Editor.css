@@ -1,0 +1,146 @@
+.markdown-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 40px);
+  background: var(--paper-cream);
+  border: var(--border-medium);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 20px;
+}
+
+.editor-toolbar {
+  height: 48px;
+  border-bottom: var(--border-thin);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.editor-file-title {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.toolbar-center {
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.toolbar-btn {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  border-radius: 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-color);
+  opacity: 0.6;
+}
+
+.toolbar-btn:hover {
+  opacity: 1;
+}
+
+.toolbar-btn.active {
+  background: white;
+  opacity: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.save-btn {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  background: var(--ink-black);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.save-btn:hover {
+  opacity: 0.8;
+}
+
+.editor-workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.editor-pane {
+  flex: 1;
+  position: relative;
+}
+
+.source-editor .cm-editor {
+  height: 100%;
+}
+
+.source-editor {
+  border-right: var(--border-thin);
+}
+
+.source-editor textarea {
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  border: none;
+  resize: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  outline: none;
+  color: var(--ink-black);
+}
+
+.preview-pane {
+  background: white;
+}
+
+.preview-content {
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.markdown-body {
+  font-family: var(--font-main);
+  line-height: 1.7;
+}
+
+.markdown-body p {
+  margin-bottom: 1em;
+}
+
+.mode-split .source-editor,
+.mode-split .preview-pane {
+  flex: 1;
+}
+
+.mode-edit .preview-pane,
+.mode-preview .source-editor {
+  display: none;
+}
+
+.editor-status-bar {
+  height: 28px;
+  background: rgba(0, 0, 0, 0.02);
+  border-top: var(--border-thin);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 0.75rem;
+  opacity: 0.5;
+  gap: 20px;
+}

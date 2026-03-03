@@ -15,7 +15,7 @@ interface SidebarProps {
   onSelectTab: (id: string) => void
   onReorderTabs: (tabs: Tab[]) => void
   onAddTab: () => void
-  onOpenFile: (fileId: string, title: string) => void
+  onOpenFile: (fileId: string, title: string, forceNewTab?: boolean) => void
   onCloseTab: (id: string) => void
   onDuplicateTab: (id: string) => void
 }
@@ -88,7 +88,7 @@ export function Sidebar({
         style={{ width: `${isOpen ? sidebarWidth : 48}px` }}
       >
         {isOpen && <SidebarHeader onClose={onClose} />}
-        {isOpen && <SidebarMenu onOpenFile={onOpenFile} />}
+        {isOpen && <SidebarMenu onOpenFile={onOpenFile} tabs={tabs} />}
         <TabBar 
           tabs={tabs} 
           activeTabId={activeTabId} 
