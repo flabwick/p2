@@ -1,6 +1,6 @@
 export { ToggleMenu, type MenuState } from './ToggleMenu';
-export { PocketSidebar } from './PocketSidebar';
-export { VaultSidebar } from './VaultSidebar';
-export { RoleSidebar } from './RoleSidebar';
+export { ShelfSidebar } from './ShelfSidebar';
+export { InboxSidebar } from './InboxSidebar';
+export { LibrarySidebar } from './LibrarySidebar';
 export { MoreSidebar } from './MoreSidebar';
 export { CustomScrollbar } from '../../ui/CustomScrollbar';

@@ -1,0 +1,35 @@
+.dock-editor-container {
+  width: 100%;
+  background: transparent;
+  position: relative;
+}
+
+.dock-editor-container .cm-editor {
+  height: auto !important;
+  min-height: 32px;
+  max-height: 160px; /* Approximately 7 lines of text at 14px font size + padding */
+  background: transparent !important;
+}
+
+.dock-editor-container .cm-scroller {
+  overflow: auto !important;
+}
+
+.dock-editor-container .cm-content {
+  padding: 8px 12px !important;
+  line-height: 1.5;
+}
+
+/* Custom scrollbar for the dock editor */
+.dock-editor-container .cm-scroller::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dock-editor-container .cm-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dock-editor-container .cm-scroller::-webkit-scrollbar-thumb {
+  background: var(--border-medium, #000);
+  border-radius: 2px;
+}

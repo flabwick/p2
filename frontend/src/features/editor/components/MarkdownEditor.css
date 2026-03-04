@@ -1,0 +1,23 @@
+.markdown-editor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: transparent;
+}
+
+.markdown-editor .cm-editor {
+  height: 100%;
+  width: 100%;
+  outline: none !important;
+}
+
+.markdown-editor .cm-scroller {
+  overflow: auto;
+}
+
+/* Let theme defaults (from lib/codemirror.ts) define the content padding
+   unless explicitly overridden in a wrapper. */
+.markdown-editor .cm-content {
+}

@@ -1,5 +1,5 @@
 import { basicSetup } from 'codemirror';
-import { EditorView, ViewPlugin, ViewUpdate, keymap, Decoration, DecorationSet, MatchDecorator } from '@codemirror/view';
+import { EditorView, ViewPlugin, ViewUpdate, keymap, Decoration, DecorationSet, MatchDecorator, placeholder } from '@codemirror/view';
 import { markdown, markdownLanguage, insertNewlineContinueMarkup } from '@codemirror/lang-markdown';
 import { syntaxTree, HighlightStyle, syntaxHighlighting, LanguageDescription } from '@codemirror/language';
 import { EditorState, Extension, Prec } from '@codemirror/state';
@@ -119,18 +119,41 @@ export const markdownHighlightStyle = HighlightStyle.define([
 // 4. Base theme
 const baseTheme = EditorView.theme({
   '&': {
-    height: '100%',
+    height: 'auto',
+    minHeight: '100%',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: 'var(--paper-cream)',
+    backgroundColor: 'transparent',
     fontSize: '14px',
     fontFamily: 'var(--font-mono)'
   },
-  '.cm-scroller': { overflow: 'auto', flexGrow: '1', padding: '20px' },
-  '.cm-content': { padding: '0', caretColor: '#000000' },
+  '.cm-scroller': { 
+    overflow: 'visible', 
+    flexGrow: '1', 
+    padding: '0' 
+  },
+  '.cm-content': { padding: '20px 40px 40px 40px', caretColor: '#000000' },
+  '.cm-placeholder': {
+    color: 'var(--ink-faint)',
+    fontStyle: 'italic',
+    position: 'relative',
+    display: 'inline-block',
+    paddingLeft: '12px'
+  },
+  '.cm-placeholder::before': {
+    content: '""',
+    position: 'absolute',
+    left: '0',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    width: '4px',
+    height: '14px',
+    backgroundColor: 'var(--accent-deep-teal)',
+    opacity: '0.4'
+  },
   '&.cm-focused .cm-cursor': { borderLeftColor: '#000000' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': { backgroundColor: '#add6ff !important' },
-  '.cm-gutters': { backgroundColor: 'var(--paper-cream)', color: '#a0a0a0', border: 'none' },
+  '.cm-gutters': { backgroundColor: 'transparent', color: '#a0a0a0', border: 'none' },
   '.cm-activeLine': { backgroundColor: 'rgba(0,0,0,0.03)' },
   '.cm-highlight': { backgroundColor: '#ffff00', color: '#000000', borderRadius: '2px', padding: '1px 0' },
   '.cm-inline-code': {
@@ -165,6 +188,7 @@ export const createEditorState = (
     extensions: [
       history(),
       closeBrackets(),
+      placeholder('Start typing...'),
       Prec.high(customKeymap),
       keymap.of([
         { key: 'Enter', run: insertNewlineContinueMarkup },

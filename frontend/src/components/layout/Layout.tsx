@@ -73,8 +73,16 @@ const Layout = ({ children }: LayoutProps) => {
   }
 
   const handleCloseTab = (id: string) => {
-    if (tabs.length === 1) return
     const newTabs = tabs.filter(tab => tab.id !== id)
+    
+    if (newTabs.length === 0) {
+      const newId = Date.now().toString()
+      const newTab: Tab = { id: newId, type: 'welcome', title: 'New Tab' }
+      setTabs([newTab])
+      setActiveTabId(newId)
+      return
+    }
+
     setTabs(newTabs)
     if (activeTabId === id) {
       const activeIndex = tabs.findIndex(t => t.id === id)

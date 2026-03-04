@@ -1,63 +1,73 @@
 import React from 'react';
 import './ToggleMenu.css';
 
-export type MenuState = 'pocket' | 'vault' | 'role' | 'more';
+export type MenuState = 'shelf' | 'inbox' | 'library' | 'more';
 
 interface ToggleMenuProps {
   onMenuChange: (state: MenuState) => void;
   activeMenu: MenuState;
 }
 
+const ShelfIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3h18v18H3zM3 9h18M3 15h18" />
+  </svg>
+);
+
+const InboxIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+  </svg>
+);
+
+const LibraryIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m16 6 4 14M12 6v14M8 8v12M4 4v16" />
+  </svg>
+);
+
+const MoreIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+);
+
 export function ToggleMenu({ onMenuChange, activeMenu }: ToggleMenuProps) {
   return (
     <div className="toggle-menu">
       <button
-        className={`toggle-button ${activeMenu === 'pocket' ? 'active' : ''}`}
-        onClick={() => onMenuChange('pocket')}
-        title="Pocket Menu"
+        className={`toggle-button ${activeMenu === 'shelf' ? 'active' : ''}`}
+        onClick={() => onMenuChange('shelf')}
+        title="Shelf"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="20" height="20">
-          <path d="M 15 58 L 15 92 Q 15 118 60 125 Q 105 118 105 92 L 105 58"
-                fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
-          <path d="M 15 58 Q 15 34 60 47 Q 105 34 105 58 Q 82 73 60 79 Q 38 73 15 58 Z"
-                fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round"/>
-          <circle cx="60" cy="79" r="12" fill="white"/>
-          <circle cx="60" cy="79" r="10" fill="none" stroke="currentColor" strokeWidth="6"/>
-        </svg>
+        <ShelfIcon />
       </button>
       
       <button
-        className={`toggle-button ${activeMenu === 'vault' ? 'active' : ''}`}
-        onClick={() => onMenuChange('vault')}
-        title="Vault Menu"
+        className={`toggle-button ${activeMenu === 'inbox' ? 'active' : ''}`}
+        onClick={() => onMenuChange('inbox')}
+        title="Inbox"
       >
-        <svg width="20" height="20" viewBox="0 0 100 100" stroke="currentColor" strokeWidth="10" strokeLinecap="square" strokeLinejoin="miter" fill="none">
-          <rect x="18" y="20" width="64" height="60" />
-          <circle cx="72" cy="50" r="10" />
-        </svg>
+        <InboxIcon />
       </button>
 
       <button
-        className={`toggle-button ${activeMenu === 'role' ? 'active' : ''}`}
-        onClick={() => onMenuChange('role')}
-        title="Role Menu"
+        className={`toggle-button ${activeMenu === 'library' ? 'active' : ''}`}
+        onClick={() => onMenuChange('library')}
+        title="Library"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+        <LibraryIcon />
       </button>
       
       <button
         className={`toggle-button ${activeMenu === 'more' ? 'active' : ''}`}
         onClick={() => onMenuChange('more')}
-        title="More Menu"
+        title="More"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="5" r="2"/>
-          <circle cx="12" cy="12" r="2"/>
-          <circle cx="12" cy="19" r="2"/>
-        </svg>
+        <MoreIcon />
       </button>
     </div>
   );

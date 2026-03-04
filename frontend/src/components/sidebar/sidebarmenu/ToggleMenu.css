@@ -1,71 +1,71 @@
-/* ===============================================
-   TOGGLE MENU COMPONENT STYLES
-   Based on version 1 globals.css styling
-   =============================================== */
-
 .toggle-menu {
   display: flex;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: var(--border-medium);
-  background: var(--paper-kraft);
+  padding: 10px 12px 0 12px;
+  background: var(--paper-cream);
   gap: 4px;
+  border-bottom: var(--border-thin);
+  flex-shrink: 0;
 }
 
 .toggle-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: var(--border-medium);
-  border-radius: 2px;
-  background: var(--paper-ivory);
-  color: var(--ink-medium);
+  height: 28px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  color: var(--ink-light);
   cursor: pointer;
-  transition: all var(--transition-physical);
-  padding: 0;
+  transition: all 0.2s ease;
+  padding: 0 8px;
   flex: 1;
   font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 0.75rem;
+  font-weight: 500;
   position: relative;
+  margin-bottom: -1px; /* Overlap the border-bottom of parent */
 }
 
 .toggle-button:hover {
-  background: var(--paper-cream);
+  background: rgba(0, 0, 0, 0.03);
   color: var(--ink-dark);
-  transform: translate(-1px, -1px);
-  border-color: var(--accent-deep-teal);
-}
-
-.toggle-button:active {
-  transform: translate(1px, 1px);
 }
 
 .toggle-button.active {
-  background: var(--accent-deep-teal);
-  color: var(--paper-ivory);
-  border-color: var(--accent-deep-teal);
-}
-
-.toggle-button.active:hover {
-  background: var(--accent-deep-teal);
-  opacity: 0.9;
-  transform: translate(-1px, -1px);
+  background: var(--paper-ivory);
+  color: var(--accent-deep-teal);
+  border: var(--border-thin);
+  border-bottom: 1px solid var(--paper-ivory); /* Hide bottom border by matching content background */
+  font-weight: 700;
+  z-index: 1;
 }
 
 .toggle-button svg {
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.toggle-button:hover svg {
-  color: var(--accent-deep-teal);
+  opacity: 0.7;
 }
 
 .toggle-button.active svg {
-  color: var(--paper-ivory);
+  color: var(--accent-deep-teal);
+  opacity: 1;
+}
+
+.toggle-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-deep-teal);
+  border-radius: 4px 4px 0 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.toggle-button.active::after {
+  opacity: 1;
 }

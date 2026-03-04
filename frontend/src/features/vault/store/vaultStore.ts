@@ -9,7 +9,7 @@ interface VaultState {
   files: VaultFile[]
   isLoading: boolean
   error: string | null
-  isCreating: { type: 'file' | 'folder', parentId?: string } | null
+  isCreating: { type: 'file' | 'folder', parentId?: string, initialValue?: string, defaultExtension?: string } | null
   isEditing: { id: string, type: 'file' | 'folder', name: string } | null
 
   // Basic Actions
@@ -19,7 +19,7 @@ interface VaultState {
   setFiles: (files: VaultFile[]) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
-  setIsCreating: (config: { type: 'file' | 'folder', parentId?: string } | null) => void
+  setIsCreating: (config: { type: 'file' | 'folder', parentId?: string, initialValue?: string, defaultExtension?: string } | null) => void
   setIsEditing: (config: { id: string, type: 'file' | 'folder', name: string } | null) => void
 
   // Complex Actions (Business Logic)
@@ -153,7 +153,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
           name, 
           vault_id: vaultId, 
           folder_id: folderId,
-          storage_path: `vaults/${vaultId}/${Date.now()}_${name}`
+          storage_path: `${vaultId}/${Date.now()}_${name}`
         }])
         .select().single()
       if (error) throw error
@@ -238,7 +238,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       // Upload to Storage
       const { error: uploadError } = await supabase.storage
         .from('vaults')
-        .upload(storagePath, file)
+        .upload(storagePath, file, {
+          cacheControl: '0',
+          upsert: true
+        })
       
       if (uploadError) throw uploadError
 

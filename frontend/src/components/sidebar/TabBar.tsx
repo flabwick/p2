@@ -59,8 +59,7 @@ const PocketIcon = () => (
           fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round" strokeLinecap="round"/>
     <path d="M 15 58 Q 15 34 60 47 Q 105 34 105 58 Q 82 73 60 79 Q 38 73 15 58 Z"
           fill="none" stroke="currentColor" strokeWidth="8" strokeLinejoin="round"/>
-    <circle cx="60" cy="79" r="12" fill="currentColor" opacity="0.2"/>
-    <circle cx="60" cy="79" r="10" fill="none" stroke="currentColor" strokeWidth="6"/>
+    <circle cx="60" cy="79" r="10" fill="currentColor"/>
   </svg>
 )
 
@@ -117,6 +116,13 @@ const TextIcon = () => (
   </svg>
 );
 
+const CloseIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
 const getIcon = (tab: Tab, index: number) => {
   const iconStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center' };
   switch (tab.type) {
@@ -158,6 +164,7 @@ interface TabItemProps {
   isDragging?: boolean;
   style?: React.CSSProperties;
   onSelectTab?: (id: string) => void;
+  onCloseTab?: (id: string) => void;
   onContextMenu?: (e: React.MouseEvent, tabId: string) => void;
   onMouseEnter?: (e: React.MouseEvent, tab: Tab) => void;
   onMouseLeave?: () => void;
@@ -172,12 +179,20 @@ const TabItem = ({
   isDragging, 
   style, 
   onSelectTab, 
+  onCloseTab,
   onContextMenu,
   onMouseEnter,
   onMouseLeave,
   listeners, 
   attributes 
 }: TabItemProps) => {
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onCloseTab) {
+      onCloseTab(tab.id);
+    }
+  };
+
   return (
     <div 
       style={style}
@@ -193,6 +208,15 @@ const TabItem = ({
       <span className="tab-number">
         {getIcon(tab, index)}
       </span>
+      {!isDragging && (
+        <button 
+          className="tab-close-btn" 
+          onClick={handleClose}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <CloseIcon />
+        </button>
+      )}
     </div>
   );
 };
@@ -202,12 +226,13 @@ interface SortableTabProps {
   index: number;
   activeTabId: string;
   onSelectTab: (id: string) => void;
+  onCloseTab: (id: string) => void;
   onContextMenu: (e: React.MouseEvent, tabId: string) => void;
   onMouseEnter: (e: React.MouseEvent, tab: Tab) => void;
   onMouseLeave: () => void;
 }
 
-function SortableTab({ tab, index, activeTabId, onSelectTab, onContextMenu, onMouseEnter, onMouseLeave }: SortableTabProps) {
+function SortableTab({ tab, index, activeTabId, onSelectTab, onCloseTab, onContextMenu, onMouseEnter, onMouseLeave }: SortableTabProps) {
   const {
     attributes,
     listeners,
@@ -230,6 +255,7 @@ function SortableTab({ tab, index, activeTabId, onSelectTab, onContextMenu, onMo
         index={index}
         activeTabId={activeTabId}
         onSelectTab={onSelectTab}
+        onCloseTab={onCloseTab}
         onContextMenu={onContextMenu}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -343,17 +369,24 @@ export function TabBar({ tabs, activeTabId, onSelectTab, onReorderTabs, onAddTab
   const renderContextMenu = () => {
     if (!contextMenu.visible) return null;
 
+    const clickedTab = tabs.find(t => t.id === contextMenu.tabId);
+    const isWelcome = clickedTab?.type === 'welcome';
+
     const content = (
       <div 
         className="vault-context-menu" 
         ref={contextMenuRef}
         style={{ position: 'fixed', left: contextMenu.x, top: contextMenu.y }}
       >
-        <button className="context-menu-item" onClick={() => {
-          onDuplicateTab(contextMenu.tabId!);
-          setContextMenu(prev => ({ ...prev, visible: false }));
-        }}>Duplicate</button>
-        <div className="context-menu-divider" />
+        {!isWelcome && (
+          <>
+            <button className="context-menu-item" onClick={() => {
+              onDuplicateTab(contextMenu.tabId!);
+              setContextMenu(prev => ({ ...prev, visible: false }));
+            }}>Duplicate</button>
+            <div className="context-menu-divider" />
+          </>
+        )}
         <button className="context-menu-item danger" onClick={() => {
           onCloseTab(contextMenu.tabId!);
           setContextMenu(prev => ({ ...prev, visible: false }));
@@ -404,6 +437,7 @@ export function TabBar({ tabs, activeTabId, onSelectTab, onReorderTabs, onAddTab
               index={index}
               activeTabId={activeTabId}
               onSelectTab={onSelectTab}
+              onCloseTab={onCloseTab}
               onContextMenu={handleContextMenu}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
@@ -418,6 +452,7 @@ export function TabBar({ tabs, activeTabId, onSelectTab, onReorderTabs, onAddTab
               index={activeIndex}
               activeTabId={activeTabId}
               isDragging
+              onCloseTab={onCloseTab}
             />
           ) : null}
         </DragOverlay>

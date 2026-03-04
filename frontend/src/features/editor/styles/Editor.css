@@ -1,107 +1,43 @@
 .markdown-editor-container {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 40px);
-  background: var(--paper-cream);
-  border: var(--border-medium);
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 20px;
-}
-
-.editor-toolbar {
-  height: 48px;
-  border-bottom: var(--border-thin);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.editor-file-title {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-.toolbar-center {
-  display: flex;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px;
-  border-radius: 4px;
-}
-
-.toolbar-btn {
-  padding: 4px 12px;
-  font-size: 0.8rem;
-  border-radius: 2px;
-  border: none;
+  min-height: 100%;
+  width: 100%;
   background: transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-color);
-  opacity: 0.6;
+  overflow: visible;
+  margin: 0;
 }
 
-.toolbar-btn:hover {
-  opacity: 1;
-}
-
-.toolbar-btn.active {
-  background: white;
-  opacity: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.save-btn {
-  padding: 6px 16px;
-  font-size: 0.85rem;
-  background: var(--ink-black);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.save-btn:hover {
-  opacity: 0.8;
+.editor-spacer {
+  flex: 1;
 }
 
 .editor-workspace {
-  flex: 1;
-  display: flex;
+  flex-shrink: 0;
+  width: calc(100% - 80px); /* Account for 40px margins on each side */
+  margin: 20px 40px 0 40px; /* Reduced top margin to 20px */
+  background: var(--paper-cream);
+  border: var(--border-medium);
+  border-bottom: none; /* Touch the dock */
+  border-radius: 4px 4px 0 0; /* Slightly tighter corners for neo-brutalist feel */
   overflow: hidden;
-}
-
-.editor-pane {
-  flex: 1;
+  /* Visible fading 'glow' to lift from dot-plot background */
+  box-shadow: 0 0 60px 5px rgba(0, 0, 0, 0.12);
   position: relative;
+  z-index: 5; /* Above background shadows, below fixed UI elements */
 }
 
-.source-editor .cm-editor {
-  height: 100%;
+.main-panel-editor {
+  flex-shrink: 0;
 }
 
-.source-editor {
-  border-right: var(--border-thin);
+.main-panel-editor .cm-editor {
+  height: auto !important;
+  min-height: 0;
 }
 
-.source-editor textarea {
-  width: 100%;
-  height: 100%;
-  padding: 24px;
-  border: none;
-  resize: none;
-  background: transparent;
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  outline: none;
-  color: var(--ink-black);
+.main-panel-editor .cm-content {
+  /* Default 20px 40px 40px 40px from lib/codemirror.ts is used here. */
 }
 
 .preview-pane {
@@ -131,16 +67,4 @@
 .mode-edit .preview-pane,
 .mode-preview .source-editor {
   display: none;
-}
-
-.editor-status-bar {
-  height: 28px;
-  background: rgba(0, 0, 0, 0.02);
-  border-top: var(--border-thin);
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  font-size: 0.75rem;
-  opacity: 0.5;
-  gap: 20px;
 }

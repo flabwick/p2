@@ -14,9 +14,44 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--paper-oatmeal);
   overflow: hidden;
   align-items: center; /* Still needed for Dock, but scroller will be full width */
+  position: relative;
+  z-index: 1;
+}
+
+/* Base Background Layer */
+.main-panel-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Permanent Background: Option 3 (Dot Matrix) */
+  background-color: var(--paper-oatmeal);
+  background-image: radial-gradient(var(--ink-faint) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  background-position: 0 0;
+  background-attachment: scroll;
+  z-index: 0;
+}
+
+/* Fixed Shadows Layer - Only visible on background */
+.main-panel-body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  /* Combination of Header, Dock, and Right-Edge shadows */
+  box-shadow: 
+    inset 0 40px 60px -20px rgba(0, 0, 0, 0.12),    /* Top (Header) shadow */
+    inset 0 -40px 60px -20px rgba(0, 0, 0, 0.12),   /* Bottom (Dock) shadow */
+    inset -40px 0 60px -20px rgba(0, 0, 0, 0.12);  /* Right edge shadow */
 }
 
 .main-panel-scroller {
@@ -25,6 +60,10 @@
   display: flex;
   flex-direction: column;
   align-items: center; /* Center the content inside the full-width scroller */
+  max-width: 100%; /* Full width framing */
+  margin: 0 auto;
+  position: relative;
+  z-index: 2; /* Above shadows, below Header/Dock elements */
 }
 
 .main-panel-content {
@@ -32,6 +71,9 @@
   width: 100%;
   max-width: 900px; /* Exact same width as dock */
   padding: 0 var(--space-lg); /* Side padding inside the 900px bound */
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 .pocket-viewer-root {

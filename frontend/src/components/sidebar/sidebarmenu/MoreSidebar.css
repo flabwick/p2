@@ -1,95 +1,39 @@
-/* ===============================================
-   MORE SIDEBAR COMPONENT STYLES
-   Accordion / Stacked Text Dropdowns
-   =============================================== */
-
 .more-sidebar {
-  height: 100%;
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: var(--paper-ivory);
 }
 
-.more-accordion {
+.more-list-extended {
   display: flex;
   flex-direction: column;
+  padding: 8px;
+  gap: 4px;
 }
 
-/* Accordion Headers */
-.accordion-header {
-  width: 100%;
+.more-item-button {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--paper-kraft);
+  width: 100%;
+  padding: 10px 12px;
   border: none;
-  border-bottom: var(--border-thin);
-  cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--ink-dark);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all var(--transition-physical);
-  text-align: left;
-}
-
-.accordion-header:hover {
-  background: var(--paper-linen);
-  color: var(--accent-deep-teal);
-}
-
-.accordion-header.active {
-  background: var(--paper-ivory);
-  color: var(--accent-deep-teal);
-  border-bottom: 2px solid var(--accent-deep-teal);
-}
-
-/* Content Area */
-.accordion-content {
-  background: var(--paper-ivory);
-  border-bottom: var(--border-thin);
-  animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* List Items */
-.more-list {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-xs) 0;
-}
-
-.more-item {
-  padding: var(--space-sm) calc(var(--space-md) + 4px);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--ink-dark);
   cursor: pointer;
-  transition: all 0.15s ease;
-  border-left: 3px solid transparent;
+  border-radius: 4px;
+  text-align: left;
+  transition: all 0.2s ease;
 }
 
-.more-item:hover {
-  background: var(--paper-cream);
-  color: var(--accent-deep-teal);
-  border-left-color: var(--accent-deep-teal);
-  padding-left: calc(var(--space-md) + 8px);
+.more-item-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
 }
 
-.more-item:active {
-  background: var(--paper-kraft);
+.more-item-button:active {
+  background: rgba(0, 0, 0, 0.1);
 }

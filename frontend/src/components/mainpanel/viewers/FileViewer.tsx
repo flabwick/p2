@@ -12,9 +12,8 @@ export const FileViewer: React.FC<FileViewerProps> = ({ activeTab }) => {
   if (isMarkdown) {
     return (
       <Editor 
+        fileId={activeTab.fileId}
         title={activeTab.title} 
-        initialContent={`# ${activeTab.title}\n\nStart editing your markdown file here...`}
-        onSave={(content) => console.log('Saving content:', content)}
       />
     );
   }

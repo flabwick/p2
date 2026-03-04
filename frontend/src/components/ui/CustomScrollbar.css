@@ -9,6 +9,7 @@
   overflow-x: hidden;
   position: relative;
   scrollbar-gutter: stable; /* Optional: prevents layout shift when scrollbar appears */
+  overscroll-behavior: none; /* Removes the 'spring' bounce effect */
 }
 
 /* Webkit Scrollbar Styling (Chrome, Safari, Edge) */

@@ -21,11 +21,12 @@
   background-color: var(--paper-ivory);
   border: var(--border-medium);
   border-bottom: none; /* Remove bottom border to sit flush with screen edge */
-  border-radius: 0;
+  border-radius: 4px 4px 0 0; /* Match editor corners */
   padding: 0; /* Padding will be handled by internal parts */
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  position: relative;
+  z-index: 5;
 }
 
 .dock-divider {
@@ -131,7 +132,7 @@
   display: none;
 }
 
-.tab-btn {
+.tab-btn, .add-tab-btn {
   background-color: var(--paper-kraft) !important;
   border-color: transparent !important;
   color: var(--ink-medium) !important;
@@ -140,10 +141,25 @@
   min-width: 28px !important;
   height: 28px !important;
   flex-shrink: 0;
+  position: relative;
 }
 
-.tab-btn:hover {
+.tab-btn:hover, .add-tab-btn:hover {
   background-color: var(--paper-cream) !important;
+  opacity: 1;
+}
+
+.add-tab-btn {
+  background-color: transparent !important;
+  border: 1px dashed var(--ink-faint) !important;
+  opacity: 0.6;
+}
+
+.add-tab-btn:hover {
+  background-color: var(--paper-linen) !important;
+  border-style: solid !important;
+  border-color: var(--accent-deep-teal) !important;
+  color: var(--accent-deep-teal) !important;
   opacity: 1;
 }
 
@@ -152,6 +168,101 @@
   color: var(--accent-deep-teal) !important;
   border-color: var(--accent-deep-teal) !important;
   opacity: 1;
+}
+
+.dock-tab-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dock-tab-close {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: white;
+  color: var(--ink-medium);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+.tab-btn:hover .dock-tab-close {
+  opacity: 1;
+}
+
+.dock-tab-close:hover {
+  color: var(--accent-oxblood);
+  transform: scale(1.1);
+}
+
+.dock-delete-confirm {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background-color: var(--paper-ivory);
+  border: var(--border-thin);
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 2px 2px 0px var(--paper-kraft);
+  z-index: 100;
+  min-width: 90px;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1); }
+}
+
+.confirm-text {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--ink-dark);
+  white-space: nowrap;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.confirm-btn {
+  flex: 1;
+  border: 1px solid var(--ink-faint);
+  background: var(--paper-cream);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.1s ease;
+}
+
+.confirm-btn.yes:hover {
+  background-color: #fee2e2;
+  color: var(--accent-oxblood);
+  border-color: var(--accent-oxblood);
+}
+
+.confirm-btn.no:hover {
+  background-color: var(--paper-linen);
+  color: var(--ink-dark);
 }
 
 .tab-actions {

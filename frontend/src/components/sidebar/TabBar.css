@@ -18,6 +18,12 @@
   padding: var(--space-sm) 0;
   gap: var(--space-sm);
   z-index: 5;
+  overflow-y: auto;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.sidebar-tabs::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
 }
 
 .sidebar-container.collapsed .sidebar-tabs {
@@ -70,8 +76,36 @@
   justify-content: center;
 }
 
+.tab-close-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: white;
+  color: var(--ink-medium);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  z-index: 10;
+  padding: 0;
+}
+
+.tab-item:hover .tab-close-btn {
+  opacity: 1;
+}
+
+.tab-close-btn:hover {
+  color: var(--accent-oxblood);
+  transform: scale(1.1);
+}
+
 .add-tab {
-  margin-top: auto;
   border: 1px dashed var(--ink-faint);
   background-color: transparent;
 }

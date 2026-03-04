@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { useDockStore } from '@/features/dock/store/dockStore'
+import { DockEditor } from '@/features/dock/components/DockEditor'
 import './Dock.css'
 
 export type MainPanelView = 'pocket' | 'file' | 'role'
@@ -39,29 +41,6 @@ const SkipForwardIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="5 4 15 12 5 20 5 4" fill="currentColor" />
     <line x1="19" y1="5" x2="19" y2="19" />
-  </svg>
-)
-
-const ArrowLeftIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="19" y1="12" x2="5" y2="12" />
-    <polyline points="12 19 5 12 12 5" />
-  </svg>
-)
-
-const ArrowRightIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-)
-
-const TrashIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    <line x1="10" y1="11" x2="10" y2="17" />
-    <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 )
 
@@ -125,11 +104,42 @@ const EnterIcon = () => (
   </svg>
 )
 
+const CloseIcon = () => (
+  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+interface DeleteConfirmationProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const DeleteConfirmation = ({ onConfirm, onCancel }: DeleteConfirmationProps) => (
+  <div className="dock-delete-confirm">
+    <span className="confirm-text">Lose content?</span>
+    <div className="confirm-actions">
+      <button className="confirm-btn yes" onClick={onConfirm}>Yes</button>
+      <button className="confirm-btn no" onClick={onCancel}>No</button>
+    </div>
+  </div>
+);
+
 export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) {
-  const [tabs, setTabs] = useState([1, 2, 3]);
-  const [activeTab, setActiveTab] = useState(1);
+  const { 
+    tabs, 
+    activeTabIndex, 
+    fetchTabs, 
+    addTab, 
+    deleteTabById, 
+    setActiveTabIndex,
+    isInitialLoad
+  } = useDockStore();
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({ left: false, right: false });
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   const updateScrollState = () => {
     if (scrollRef.current) {
@@ -140,6 +150,10 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
       });
     }
   };
+
+  useEffect(() => {
+    fetchTabs();
+  }, [fetchTabs]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -154,21 +168,6 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
     }
   }, [tabs]);
 
-  const handleAddTab = () => {
-    const newTabs = [...tabs, tabs.length + 1];
-    setTabs(newTabs);
-    setActiveTab(newTabs.length);
-  };
-
-  const handleDeleteTab = () => {
-    if (tabs.length <= 1) return;
-    const newTabs = tabs.slice(0, -1);
-    setTabs(newTabs);
-    if (activeTab > newTabs.length) {
-      setActiveTab(newTabs.length);
-    }
-  };
-
   const getMaskImage = () => {
     const { left, right } = scrollState;
     if (!left && !right) return 'none';
@@ -177,7 +176,27 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
     return `linear-gradient(to right, ${leftFade}, ${rightFade})`;
   };
 
+  const handleCloseTab = (e: React.MouseEvent, tabId: string, hasContent: boolean) => {
+    e.stopPropagation();
+    if (hasContent) {
+      setConfirmingDelete(tabId);
+    } else {
+      deleteTabById(tabId);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (confirmingDelete) {
+      deleteTabById(confirmingDelete);
+      setConfirmingDelete(null);
+    }
+  };
+
   const showPanelPart = activeView === 'pocket' && pocketView === 'feed';
+
+  if (isInitialLoad) {
+    return null; // Or a skeleton loader
+  }
 
   return (
     <footer className="main-panel-dock">
@@ -186,16 +205,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
         <div className="dock-live-part">
           <div className="live-dock-container">
             <div className="live-editor-wrapper">
-              <textarea 
-                className="live-editor-input custom-scrollbar" 
-                placeholder="Type here..." 
-                rows={1}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = `${target.scrollHeight}px`;
-                }}
-              />
+              <DockEditor />
               <button className="std-button ghost square small enter-btn" aria-label="Enter">
                 <EnterIcon />
               </button>
@@ -211,34 +221,43 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
                     WebkitMaskImage: getMaskImage()
                   }}
                 >
-                  {tabs.map((_, index) => {
+                  {tabs.map((tab, index) => {
                     const id = index + 1;
+                    const hasContent = tab.content.trim().length > 0;
+                    const isConfirming = confirmingDelete === tab.id;
+
                     return (
-                      <button 
-                        key={id}
-                        className={`std-button square small tab-btn ${activeTab === id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(id)}
-                      >
-                        {id}
-                      </button>
+                      <div key={tab.id} className="dock-tab-wrapper">
+                        <button 
+                          className={`std-button square small tab-btn ${activeTabIndex === index ? 'active' : ''}`}
+                          onClick={() => setActiveTabIndex(index)}
+                        >
+                          {id}
+                          {tabs.length > 1 && (
+                            <div 
+                              className="dock-tab-close" 
+                              onClick={(e) => handleCloseTab(e, tab.id, hasContent)}
+                              onPointerDown={(e) => e.stopPropagation()}
+                            >
+                              <CloseIcon />
+                            </div>
+                          )}
+                        </button>
+                        {isConfirming && (
+                          <DeleteConfirmation 
+                            onConfirm={confirmDelete}
+                            onCancel={() => setConfirmingDelete(null)}
+                          />
+                        )}
+                      </div>
                     );
                   })}
-                </div>
-                <div className="tab-actions">
                   <button 
-                    className="std-button ghost square small" 
+                    className="std-button ghost square small add-tab-btn" 
                     aria-label="Add Tab"
-                    onClick={handleAddTab}
+                    onClick={addTab}
                   >
                     <PlusIcon />
-                  </button>
-                  <button 
-                    className="std-button ghost square small" 
-                    aria-label="Delete Tab"
-                    onClick={handleDeleteTab}
-                    disabled={tabs.length <= 1}
-                  >
-                    <TrashIcon />
                   </button>
                 </div>
               </div>

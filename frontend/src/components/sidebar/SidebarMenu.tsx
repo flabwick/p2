@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tab } from '../../types/tabs';
-import { ToggleMenu, MenuState, PocketSidebar, VaultSidebar, RoleSidebar, MoreSidebar } from './sidebarmenu/index';
+import { ToggleMenu, MenuState, MoreSidebar, ShelfSidebar, InboxSidebar, LibrarySidebar } from './sidebarmenu/index';
 import './SidebarMenu.css'
 
 interface SidebarMenuProps {
@@ -9,20 +9,20 @@ interface SidebarMenuProps {
 }
 
 export function SidebarMenu({ onOpenFile, tabs }: SidebarMenuProps) {
-  const [activeMenu, setActiveMenu] = useState<MenuState>('pocket');
+  const [activeMenu, setActiveMenu] = useState<MenuState>('shelf');
 
   const renderSidebarContent = () => {
     switch (activeMenu) {
-      case 'pocket':
-        return <PocketSidebar />;
-      case 'vault':
-        return <VaultSidebar onOpenFile={onOpenFile} tabs={tabs} />;
-      case 'role':
-        return <RoleSidebar />;
+      case 'shelf':
+        return <ShelfSidebar onOpenFile={onOpenFile} />;
+      case 'inbox':
+        return <InboxSidebar onOpenFile={onOpenFile} />;
+      case 'library':
+        return <LibrarySidebar onOpenFile={onOpenFile} tabs={tabs} />;
       case 'more':
         return <MoreSidebar />;
       default:
-        return <PocketSidebar />;
+        return null;
     }
   };
 

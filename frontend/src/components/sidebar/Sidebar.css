@@ -17,6 +17,19 @@
   z-index: 1000; /* Overlap everything when expanded */
 }
 
+.sidebar-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  /* Visible fading 'glow' to lift from dot-plot background */
+  box-shadow: 0 0 60px 5px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
 .sidebar-container.collapsed {
   min-width: 48px;
   top: 60px;
