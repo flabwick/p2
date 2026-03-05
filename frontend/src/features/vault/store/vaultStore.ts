@@ -26,12 +26,12 @@ interface VaultState {
   fetchVaults: () => Promise<void>
   fetchVaultContent: (vaultId: string) => Promise<void>
   createFolder: (name: string, parentId?: string) => Promise<any>
-  createFile: (name: string, folderId?: string) => Promise<any>
+  createFile: (name: string, folderId?: string, isOnShelf?: boolean) => Promise<any>
   renameNode: (id: string, type: 'folder' | 'file', newName: string) => Promise<void>
-  moveNode: (id: string, type: 'folder' | 'file', targetFolderId: string | null) => Promise<void>
+  moveNode: (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf?: boolean) => Promise<void>
   deleteNode: (id: string, type: 'folder' | 'file') => Promise<void>
-  uploadFile: (file: File, folderId?: string) => Promise<any>
-  checkDuplicate: (name: string, type: 'folder' | 'file', parentId: string | null, excludeId?: string) => boolean
+  uploadFile: (file: File, folderId?: string, isOnShelf?: boolean) => Promise<any>
+  checkDuplicate: (name: string, type: 'folder' | 'file', parentId: string | null, excludeId?: string, isOnShelf?: boolean) => boolean
 }
 
 export const useVaultStore = create<VaultState>((set, get) => ({
@@ -53,7 +53,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   setIsCreating: (isCreating) => set({ isCreating }),
   setIsEditing: (isEditing) => set({ isEditing }),
 
-  checkDuplicate: (name, type, parentId, excludeId) => {
+  checkDuplicate: (name, type, parentId, excludeId, isOnShelf = false) => {
     const trimmedName = name.trim().toLowerCase();
     if (type === 'folder') {
       return get().folders.some(f => 
@@ -62,8 +62,14 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         (f.parent_id || null) === (parentId || null)
       );
     } else {
+      // If it's on the shelf, we allow duplicates (the user will handle naming separately or we just let it be)
+      // Actually the user said "allow duplicate names (using a soft number marker)"
+      // So checkDuplicate for shelf should probably always return false, and we handle naming in createFile
+      if (isOnShelf) return false;
+
       return get().files.some(f => 
         f.id !== excludeId &&
+        !f.is_on_shelf &&
         (f.name || '').trim().toLowerCase() === trimmedName && 
         (f.folder_id || null) === (parentId || null)
       );
@@ -133,7 +139,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  createFile: async (name: string, folderId?: string) => {
+  createFile: async (name: string, folderId?: string, isOnShelf: boolean = false) => {
     try {
       let vaultId = get().activeVaultId
       if (!vaultId) {
@@ -147,13 +153,31 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
       }
 
+      let finalName = name;
+      if (isOnShelf) {
+        const existingNames = get().files
+          .filter(f => f.is_on_shelf)
+          .map(f => f.name.toLowerCase());
+        
+        let counter = 0;
+        const parts = name.split('.');
+        const extension = parts.length > 1 ? `.${parts.pop()}` : '';
+        const baseName = parts.join('.');
+        
+        while (existingNames.includes(finalName.toLowerCase())) {
+          counter++;
+          finalName = `${baseName} (${counter})${extension}`;
+        }
+      }
+
       const { data, error } = await supabase
         .from('files')
         .insert([{ 
-          name, 
+          name: finalName, 
           vault_id: vaultId, 
           folder_id: folderId,
-          storage_path: `${vaultId}/${Date.now()}_${name}`
+          is_on_shelf: isOnShelf,
+          storage_path: `${vaultId}/${Date.now()}_${finalName}`
         }])
         .select().single()
       if (error) throw error
@@ -179,16 +203,24 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  moveNode: async (id: string, type: 'folder' | 'file', targetFolderId: string | null) => {
+  moveNode: async (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf: boolean = false) => {
     try {
       const table = type === 'folder' ? 'vault_folders' : 'files'
-      const field = type === 'folder' ? 'parent_id' : 'folder_id'
-      const { error } = await supabase.from(table).update({ [field]: targetFolderId }).eq('id', id)
+      const updates: any = {}
+      
+      if (type === 'folder') {
+        updates.parent_id = targetFolderId
+      } else {
+        updates.folder_id = targetFolderId
+        updates.is_on_shelf = isOnShelf
+      }
+
+      const { error } = await supabase.from(table).update(updates).eq('id', id)
       if (error) throw error
       if (type === 'folder') {
         set(state => ({ folders: state.folders.map(f => f.id === id ? { ...f, parent_id: targetFolderId || undefined } : f) }))
       } else {
-        set(state => ({ files: state.files.map(f => f.id === id ? { ...f, folder_id: targetFolderId || undefined } : f) }))
+        set(state => ({ files: state.files.map(f => f.id === id ? { ...f, folder_id: targetFolderId || undefined, is_on_shelf: isOnShelf } : f) }))
       }
     } catch (err: any) {
       set({ error: err.message })
@@ -218,7 +250,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  uploadFile: async (file: File, folderId?: string) => {
+  uploadFile: async (file: File, folderId?: string, isOnShelf: boolean = false) => {
     try {
       let vaultId = get().activeVaultId
       if (!vaultId) {
@@ -232,8 +264,25 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
       }
 
+      let finalName = file.name;
+      if (isOnShelf) {
+        const existingNames = get().files
+          .filter(f => f.is_on_shelf)
+          .map(f => f.name.toLowerCase());
+        
+        let counter = 0;
+        const parts = file.name.split('.');
+        const extension = parts.length > 1 ? `.${parts.pop()}` : '';
+        const baseName = parts.join('.');
+        
+        while (existingNames.includes(finalName.toLowerCase())) {
+          counter++;
+          finalName = `${baseName} (${counter})${extension}`;
+        }
+      }
+
       const timestamp = Date.now()
-      const storagePath = `${vaultId}/${timestamp}_${file.name}`
+      const storagePath = `${vaultId}/${timestamp}_${finalName}`
 
       // Upload to Storage
       const { error: uploadError } = await supabase.storage
@@ -249,9 +298,10 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       const { data, error: dbError } = await supabase
         .from('files')
         .insert([{
-          name: file.name,
+          name: finalName,
           vault_id: vaultId,
           folder_id: folderId,
+          is_on_shelf: isOnShelf,
           storage_path: storagePath,
           mime_type: file.type,
           size: file.size,

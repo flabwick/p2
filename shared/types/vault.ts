@@ -25,11 +25,12 @@ export interface VaultFile {
   mime_type?: string
   size?: number
   metadata?: any
+  is_on_shelf: boolean
   created_at: string
   updated_at: string
 }
 
-export type FileNodeType = 'folder' | 'file'
+export type FileNodeType = 'folder' | 'file' | 'pocket'
 
 export interface FileNode {
   id: string

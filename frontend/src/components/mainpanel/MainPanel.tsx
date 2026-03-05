@@ -30,13 +30,16 @@ export function MainPanel({
 
   const renderViewer = () => {
     switch (activeTab.type) {
-      case 'pocket': return <PocketViewer activeSubView={pocketView} />
+      case 'pocket': return <PocketViewer activeSubView={pocketView} activeTab={activeTab} />
       case 'file': return <FileViewer activeTab={activeTab} />
       case 'role': return <RoleViewer />
       case 'welcome': return <WelcomeSelector onSelect={onUpdateTabType} />
-      default: return <PocketViewer activeSubView={pocketView} />
+      default: return <PocketViewer activeSubView={pocketView} activeTab={activeTab} />
     }
   }
+
+  const isFixedViewer = activeTab.type === 'file' && 
+    ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'epub'].includes(activeTab.fileExtension?.toLowerCase() || '');
 
   return (
     <div className="main-panel-container">
@@ -55,8 +58,8 @@ export function MainPanel({
       />
       
       <div className="main-panel-body" style={{ marginLeft: `${sidebarOffset}px` }}>
-        <CustomScrollbar className="main-panel-scroller">
-          <main className="main-panel-content">
+        <CustomScrollbar className={`main-panel-scroller ${isFixedViewer ? 'no-scroll full-height' : ''}`}>
+          <main className={`main-panel-content ${isFixedViewer ? 'fixed-viewer full-height' : ''}`}>
             {renderViewer()}
           </main>
         </CustomScrollbar>

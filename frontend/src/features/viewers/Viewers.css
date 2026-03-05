@@ -1,0 +1,15 @@
+/* 
+   Viewers.css - Aggregator file
+   Styles have been split into specific files:
+   - BaseViewer.css
+   - EpubViewer.css
+   - EpubProcessor.css
+   - ImageViewer.css
+   - PdfViewer.css
+*/
+
+@import './BaseViewer.css';
+@import './EpubViewer.css';
+@import './EpubProcessor.css';
+@import './ImageViewer.css';
+@import './PdfViewer.css';

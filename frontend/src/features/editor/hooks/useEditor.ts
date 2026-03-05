@@ -5,9 +5,10 @@ import { createEditorState, createEditorView } from '../lib/codemirror';
 export interface UseEditorOptions {
   initialContent?: string;
   onUpdate?: (content: string) => void;
+  languageType?: 'markdown' | 'plain';
 }
 
-export const useEditor = ({ initialContent = '', onUpdate }: UseEditorOptions = {}) => {
+export const useEditor = ({ initialContent = '', onUpdate, languageType = 'markdown' }: UseEditorOptions = {}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<EditorView | null>(null);
   const onUpdateRef = useRef(onUpdate);
@@ -27,7 +28,7 @@ export const useEditor = ({ initialContent = '', onUpdate }: UseEditorOptions = 
       }
     });
 
-    const state = createEditorState(initialContent, [updateListener]);
+    const state = createEditorState(initialContent, languageType, [updateListener]);
     const editorView = createEditorView(containerRef.current, state);
     
     setView(editorView);

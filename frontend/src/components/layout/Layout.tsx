@@ -120,7 +120,7 @@ const Layout = ({ children }: LayoutProps) => {
     const newId = Date.now().toString()
     const newTab: Tab = { 
       id: newId, 
-      type: 'file', 
+      type: fileExtension?.toLowerCase() === 'pocket' ? 'pocket' : 'file', 
       title, 
       fileId,
       fileExtension 

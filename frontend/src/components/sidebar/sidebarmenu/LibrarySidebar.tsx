@@ -116,9 +116,11 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
           id: f.id, name: f.name, type: 'folder' as const, parentId: f.parent_id || undefined, children: buildTree(f.id),
         }));
       const currentFiles = files
-        .filter((f) => (f.folder_id || null) === parentId)
+        .filter((f) => (f.folder_id || null) === parentId && !f.is_on_shelf)
         .map((f) => ({
-          id: f.id, name: f.name, type: 'file' as const, parentId: f.folder_id || undefined,
+          id: f.id, name: f.name, 
+          type: f.name.toLowerCase().endsWith('.pocket') ? 'pocket' as const : 'file' as const, 
+          parentId: f.folder_id || undefined,
           extension: f.name.split('.').pop(), mime_type: f.mime_type, size: f.size
         }));
       return [...currentFolders, ...currentFiles];
@@ -177,6 +179,12 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
     const pId = typeof parentId === 'string' ? parentId : undefined;
     if (pId) setExpandedFolders(prev => ({ ...prev, [pId]: true }));
     setIsCreating({ type: 'file', parentId: pId, initialValue: '', defaultExtension: '.md' });
+  };
+
+  const handleCreatePocket = (parentId?: string | any) => {
+    const pId = typeof parentId === 'string' ? parentId : undefined;
+    if (pId) setExpandedFolders(prev => ({ ...prev, [pId]: true }));
+    setIsCreating({ type: 'file', parentId: pId, initialValue: '', defaultExtension: '.pocket' });
   };
 
   const handleCommitCreation = async (name: string) => {
@@ -427,7 +435,7 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
         <div className="vault-action-bar">
           <button className="std-button small square" title="New Markdown" onClick={() => handleCreateMarkdown()}><MarkdownIcon /></button>
           <button className="std-button small square" title="New File" onClick={() => handleCreateFile()}><NewFileIcon /></button>
-          <button className="std-button small square" title="Add Pocket" onClick={() => {}}><NewPocketIcon /></button>
+          <button className="std-button small square" title="Add Pocket" onClick={() => handleCreatePocket()}><NewPocketIcon /></button>
           <button className="std-button small square" title="New Folder" onClick={() => handleCreateFolder()}><NewFolderIcon /></button>
           <button className="std-button small square" title="Upload" onClick={() => handleUploadClick()}><UploadIcon /></button>
           <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} multiple />
@@ -465,6 +473,7 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
             <>
               <button className="context-menu-item" onClick={() => { handleCreateMarkdown(contextMenu.nodeId!); setContextMenu(prev => ({ ...prev, visible: false })); }}>New Markdown</button>
               <button className="context-menu-item" onClick={() => { handleCreateFile(contextMenu.nodeId!); setContextMenu(prev => ({ ...prev, visible: false })); }}>New File</button>
+              <button className="context-menu-item" onClick={() => { handleCreatePocket(contextMenu.nodeId!); setContextMenu(prev => ({ ...prev, visible: false })); }}>New Pocket</button>
               <button className="context-menu-item" onClick={() => { handleCreateFolder(contextMenu.nodeId!); setContextMenu(prev => ({ ...prev, visible: false })); }}>New Folder</button>
               <button className="context-menu-item" onClick={() => { handleUploadClick(contextMenu.nodeId || undefined); setContextMenu(prev => ({ ...prev, visible: false })); }}>Upload Here</button>
               {contextMenu.nodeId && <div className="context-menu-divider" />}

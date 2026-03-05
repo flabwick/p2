@@ -181,21 +181,27 @@ const syntaxLogger = ViewPlugin.fromClass(class {
 
 export const createEditorState = (
   initialContent: string, 
+  languageType: 'markdown' | 'plain' = 'markdown',
   extensions: Extension[] = []
 ): EditorState => {
-  return EditorState.create({
-    doc: initialContent,
-    extensions: [
-      history(),
-      closeBrackets(),
-      placeholder('Start typing...'),
-      Prec.high(customKeymap),
-      keymap.of([
-        { key: 'Enter', run: insertNewlineContinueMarkup },
-        ...defaultKeymap,
-        ...historyKeymap,
-        indentWithTab
-      ]),
+  const baseExtensions: Extension[] = [
+    history(),
+    closeBrackets(),
+    placeholder('Start typing...'),
+    Prec.high(customKeymap),
+    keymap.of([
+      ...defaultKeymap,
+      ...historyKeymap,
+      indentWithTab
+    ]),
+    baseTheme,
+    EditorView.lineWrapping,
+    ...extensions
+  ];
+
+  if (languageType === 'markdown') {
+    baseExtensions.push(
+      keymap.of([{ key: 'Enter', run: insertNewlineContinueMarkup }]),
       markdown({
         // By not providing 'base', we use the internal default which avoids instanceof issues.
         // We pass an extension that disables SetextHeading.
@@ -208,11 +214,13 @@ export const createEditorState = (
       }),
       syntaxHighlighting(markdownHighlightStyle),
       highlightPlugin,
-      syntaxLogger,
-      baseTheme,
-      EditorView.lineWrapping,
-      ...extensions
-    ]
+      syntaxLogger
+    );
+  }
+
+  return EditorState.create({
+    doc: initialContent,
+    extensions: baseExtensions
   });
 };
 

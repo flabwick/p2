@@ -50,7 +50,6 @@
   background-color: var(--paper-linen);
   color: var(--ink-dark);
 }
-
 .tab-item.active {
   background-color: var(--paper-ivory);
   color: var(--accent-deep-teal);
@@ -59,7 +58,12 @@
   transform: translate(-1px, -1px);
 }
 
+.tab-item.pocket.active {
+  color: var(--accent-burnt-orange);
+}
+
 .tab-item.dragging {
+...
   cursor: grabbing;
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 100;

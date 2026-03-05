@@ -42,6 +42,24 @@ export const NewPocketIcon = () => (
   </svg>
 );
 
+export const PocketIcon = () => (
+  <svg 
+    className="pocket-icon-tree" 
+    width="16" 
+    height="16" 
+    viewBox="0 0 120 140" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="10" 
+    strokeLinejoin="round" 
+    strokeLinecap="round"
+  >
+    <path d="M 15 58 L 15 92 Q 15 118 60 125 Q 105 118 105 92 L 105 58" />
+    <path d="M 15 58 Q 15 34 60 47 Q 105 34 105 58 Q 82 73 60 79 Q 38 73 15 58 Z" />
+    <circle cx="60" cy="79" r="14" fill="currentColor" />
+  </svg>
+);
+
 export const NewFolderIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -165,6 +183,8 @@ export const stripExtension = (name: string) => {
 export const getFileIcon = (fileName: string) => {
   const ext = fileName.split('.').pop()?.toLowerCase();
   switch (ext) {
+    case 'pocket':
+      return { icon: <PocketIcon />, colorClass: 'file-pocket' };
     case 'png':
     case 'jpg':
     case 'jpeg':

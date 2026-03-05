@@ -1,0 +1,54 @@
+/* EPUB Processor Styles */
+.epub-processor-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--paper-cream);
+}
+
+.processor-card {
+  background: white;
+  border: var(--border-medium);
+  padding: 40px;
+  width: 440px;
+  text-align: center;
+  box-shadow: 12px 12px 0px var(--ink-black);
+}
+
+.manuscript-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.processor-progress-bar {
+  height: 12px;
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent-deep-teal);
+  transition: width 0.3s ease;
+}
+
+.status-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-dark);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 10px 0;
+}
+
+.percentage {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--accent-deep-teal);
+}

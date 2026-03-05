@@ -8,6 +8,7 @@ export interface EditorProps {
   fileId?: string;
   initialContent?: string;
   title?: string;
+  languageType?: 'markdown' | 'plain';
 }
 
 /**
@@ -18,7 +19,8 @@ export interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ 
   fileId,
   initialContent: propInitialContent = '', 
-  title
+  title,
+  languageType = 'markdown'
 }) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [content, setContent] = useState(propInitialContent);
@@ -69,7 +71,7 @@ export const Editor: React.FC<EditorProps> = ({
 
         if (downloadError) {
           console.log('New file detected, using default content');
-          const defaultContent = `# ${title || 'Untitled'}\n\n`;
+          const defaultContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
           setContent(defaultContent);
           setIsLoaded(true);
           return;
@@ -79,7 +81,7 @@ export const Editor: React.FC<EditorProps> = ({
 
         if (isErrorJSON(text)) {
           console.warn('Detected error JSON in file content, clearing');
-          const recoveredContent = `# ${title || 'Untitled'}\n\n`;
+          const recoveredContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
           setContent(recoveredContent);
         } else {
           setContent(text);
@@ -96,7 +98,7 @@ export const Editor: React.FC<EditorProps> = ({
     };
 
     loadFile();
-  }, [fileId, title]);
+  }, [fileId, title, languageType]);
 
   // 2. Realtime Sync: Listen for changes from other instances
   useEffect(() => {
@@ -161,7 +163,7 @@ export const Editor: React.FC<EditorProps> = ({
           .from('vaults')
           .upload(storagePath, content, {
             upsert: true,
-            contentType: 'text/markdown',
+            contentType: languageType === 'markdown' ? 'text/markdown' : 'text/plain',
             cacheControl: '0'
           });
 
@@ -189,7 +191,7 @@ export const Editor: React.FC<EditorProps> = ({
     }, 2000); 
 
     return () => clearTimeout(saveTimeout);
-  }, [content, fileId, storagePath, isLoaded]);
+  }, [content, fileId, storagePath, isLoaded, languageType]);
 
   const handleUpdate = (newContent: string) => {
     if (!isSyncing.current && isLoaded) {
@@ -205,6 +207,7 @@ export const Editor: React.FC<EditorProps> = ({
           content={content} 
           onChange={handleUpdate}
           className="main-panel-editor"
+          languageType={languageType}
         />
       </div>
     </div>

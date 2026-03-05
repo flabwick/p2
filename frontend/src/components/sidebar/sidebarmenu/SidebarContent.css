@@ -102,15 +102,17 @@
 
 /* --- File Type Colors --- */
 
-.file-image .vault-tree-icon { color: #3b82f6; }
-.file-pdf .vault-tree-icon { color: #ef4444; }
-.file-book .vault-tree-icon { color: #10b981; }
-.file-text .vault-tree-icon { color: #f59e0b; }
+.file-image .vault-tree-icon, .file-image .pocket-mini-icon { color: #3b82f6; }
+.file-pdf .vault-tree-icon, .file-pdf .pocket-mini-icon { color: #ef4444; }
+.file-book .vault-tree-icon, .file-book .pocket-mini-icon { color: #10b981; }
+.file-text .vault-tree-icon, .file-text .pocket-mini-icon { color: #f59e0b; }
+.file-pocket .vault-tree-icon, .file-pocket .pocket-mini-icon { color: var(--accent-burnt-orange); }
 
 .file-image:hover { background-color: rgba(59, 130, 246, 0.08) !important; }
 .file-pdf:hover { background-color: rgba(239, 68, 68, 0.08) !important; }
 .file-book:hover { background-color: rgba(16, 185, 129, 0.08) !important; }
 .file-text:hover { background-color: rgba(245, 158, 11, 0.08) !important; }
+.file-pocket:hover { background-color: rgba(197, 108, 60, 0.08) !important; }
 
 .vault-tree-toggle {
   display: flex;
@@ -149,9 +151,9 @@
   flex: 1;
 }
 
-.vault-tree-item.editing {
+.vault-tree-item.editing, .pocket-mini-item.editing {
   background: var(--paper-cream);
-  padding: 2px 8px;
+  padding: 4px 8px;
   border: var(--border-thin);
   border-color: var(--accent-deep-teal);
   width: 100%;

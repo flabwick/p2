@@ -4,11 +4,14 @@ import { FeedViewer } from './pocket/FeedViewer';
 import { LogViewer } from './pocket/LogViewer';
 import { PocketSubView } from '../dock/Dock';
 
+import { Tab } from '../../../types/tabs';
+
 interface PocketViewerProps {
   activeSubView: PocketSubView;
+  activeTab: Tab;
 }
 
-export const PocketViewer: React.FC<PocketViewerProps> = ({ activeSubView }) => {
+export const PocketViewer: React.FC<PocketViewerProps> = ({ activeSubView, activeTab }) => {
   const renderSubView = () => {
     switch (activeSubView) {
       case 'desk': return <DeskViewer />;

@@ -130,6 +130,8 @@ const getIcon = (tab: Tab, index: number) => {
     case 'file': {
       const ext = tab.fileExtension?.toLowerCase();
       switch (ext) {
+        case 'pocket':
+          return <span style={{ ...iconStyle, color: 'var(--accent-burnt-orange)' }}><PocketIcon /></span>;
         case 'png':
         case 'jpg':
         case 'jpeg':
@@ -196,7 +198,7 @@ const TabItem = ({
   return (
     <div 
       style={style}
-      className={`tab-item ${activeTabId === tab.id ? 'active' : ''} ${isDragging ? 'dragging' : ''}`} 
+      className={`tab-item ${tab.type} ${activeTabId === tab.id ? 'active' : ''} ${isDragging ? 'dragging' : ''}`} 
       title={""} // Override default title to use our custom tooltip
       onClick={() => onSelectTab?.(tab.id)}
       onContextMenu={(e) => onContextMenu?.(e, tab.id)}

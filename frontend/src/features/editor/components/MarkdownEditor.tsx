@@ -8,6 +8,7 @@ export interface MarkdownEditorProps {
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  languageType?: 'markdown' | 'plain';
 }
 
 /**
@@ -19,10 +20,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   content,
   onChange,
   className = '',
-  autoFocus = false
+  autoFocus = false,
+  languageType = 'markdown'
 }) => {
   const { containerRef, setContent, view } = useEditor({
     initialContent: content,
+    languageType,
     onUpdate: (newContent) => {
       if (onChange) {
         onChange(newContent);
