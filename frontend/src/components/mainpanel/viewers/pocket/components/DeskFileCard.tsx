@@ -260,12 +260,13 @@ export const DeskFileCard: React.FC<DeskFileCardProps> = ({ card, pocketId, isDr
     return buildTree(null);
   }, [folders, files]);
 
-  const handleExecuteMove = async () => {
+  const handleExecuteMove = async (overrideTargetId?: string | 'shelf' | 'unsave' | null) => {
     if (isSaving) return;
+    const targetId = overrideTargetId !== undefined ? overrideTargetId : selectedTargetId;
 
     // Duplicate detection (not for shelf or unsave)
-    if (selectedTargetId !== 'shelf' && selectedTargetId !== 'unsave') {
-      const targetFolderId = selectedTargetId as string | null;
+    if (targetId !== 'shelf' && targetId !== 'unsave') {
+      const targetFolderId = targetId as string | null;
       const existing = files.find(f => 
         !f.is_on_shelf && 
         !f.is_on_desk && 
@@ -288,17 +289,17 @@ export const DeskFileCard: React.FC<DeskFileCardProps> = ({ card, pocketId, isDr
 
     setIsSaving(true);
     try {
-      if (selectedTargetId === 'unsave') {
+      if (targetId === 'unsave') {
         // Unsave from library/shelf, keep only on desk
         await moveNode(card.file_id, 'file', null, false, true);
         await updateFileCard(pocketId, card.id, { is_liked: false });
-      } else if (selectedTargetId === 'shelf') {
+      } else if (targetId === 'shelf') {
         // Move to shelf (and remove from library folders)
         await moveNode(card.file_id, 'file', null, true, false);
         await updateFileCard(pocketId, card.id, { is_liked: true });
       } else {
         // Move to specific library folder (and remove from shelf)
-        await moveNode(card.file_id, 'file', selectedTargetId as string | null, false, false);
+        await moveNode(card.file_id, 'file', targetId as string | null, false, false);
         await updateFileCard(pocketId, card.id, { is_liked: true });
       }
       
@@ -590,7 +591,7 @@ export const DeskFileCard: React.FC<DeskFileCardProps> = ({ card, pocketId, isDr
               <button 
                 className="std-button small ghost danger-text" 
                 style={{ marginRight: 'auto', color: 'var(--accent-oxblood)', border: 'none', fontWeight: 700 }}
-                onClick={() => { setSelectedTargetId('unsave'); handleExecuteMove(); }}
+                onClick={() => handleExecuteMove('unsave')}
                 disabled={isSaving}
               >
                 UNSAVE
@@ -603,7 +604,7 @@ export const DeskFileCard: React.FC<DeskFileCardProps> = ({ card, pocketId, isDr
               </button>
               <button 
                 className="std-button small primary" 
-                onClick={handleExecuteMove}
+                onClick={() => handleExecuteMove()}
                 disabled={isSaving || selectedTargetId === 'unsave' || selectedTargetId === currentLocationId}
               >
                 {isSaving ? '...' : 'SAVE'}

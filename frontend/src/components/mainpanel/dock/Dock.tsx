@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useDockStore } from '@/features/dock/store/dockStore'
 import { useDeskStore } from '@/features/pockets/store/deskStore'
 import { useVaultStore } from '@/features/vault/store/vaultStore'
+import { useTabStore } from '@/features/tabs/store/tabStore'
 import { DockEditor } from '@/features/dock/components/DockEditor'
 import { supabase } from '@/lib/supabase'
 import './Dock.css'
@@ -14,6 +15,8 @@ interface DockProps {
   pocketView: PocketSubView
   onPocketViewChange: (view: PocketSubView) => void
   pocketId?: string
+  isFolded: boolean
+  setIsFolded: (folded: boolean) => void
 }
 
 const RefreshIcon = () => (
@@ -101,10 +104,9 @@ const ChevronUpIcon = () => (
   </svg>
 )
 
-const EnterIcon = () => (
+const ChevronDownIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 10 4 15 9 20" />
-    <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+    <polyline points="6 9 12 15 18 9" />
   </svg>
 )
 
@@ -155,7 +157,7 @@ const DeleteConfirmation = ({ onConfirm, onCancel }: DeleteConfirmationProps) =>
   </div>
 );
 
-export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: DockProps) {
+export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isFolded, setIsFolded }: DockProps) {
   const { 
     tabs, 
     activeTabIndex, 
@@ -163,11 +165,16 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: D
     addTab, 
     deleteTabById, 
     setActiveTabIndex,
+    updateTabContent,
     isInitialLoad
   } = useDockStore();
 
   const { addFileCard, setIsAddPopupVisible, desks } = useDeskStore();
   const { createFile, uploadFile } = useVaultStore();
+  const { tabs: mainTabs, activeTabId: activeMainTabId } = useTabStore();
+
+  const activeMainTab = useMemo(() => mainTabs.find(t => t.id === activeMainTabId), [mainTabs, activeMainTabId]);
+  const activeDockTab = tabs[activeTabIndex];
 
   const desk = pocketId ? desks[pocketId] : null;
   const deskItems = desk?.feed_state?.items || [];
@@ -185,6 +192,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: D
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [scrollState, setScrollState] = useState({ left: false, right: false });
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Keep track of which subview to render in the collapsible part to avoid jumps during animation
   const [renderedPocketView, setRenderedPocketView] = useState(pocketView);
@@ -319,102 +327,154 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: D
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handleAddFromDock = async () => {
+    if (!activeDockTab || !activeDockTab.content.trim() || isProcessing) return;
+    
+    setIsProcessing(true);
+    let success = false;
+    try {
+      // CASE 1: Active tab is a Markdown file in Main Panel
+      if (activeMainTab?.type === 'file' && activeMainTab.fileExtension?.toLowerCase() === 'md' && activeMainTab.fileId) {
+        const fileId = activeMainTab.fileId;
+        
+        // Fetch current file content
+        const { data: fileData, error: fileError } = await supabase
+          .from('files')
+          .select('storage_path')
+          .eq('id', fileId)
+          .single();
+        
+        if (fileError) throw fileError;
+        
+        // Strip bucket name from path if it was mistakenly included in DB
+        const currentPath = fileData.storage_path.startsWith('vaults/') 
+          ? fileData.storage_path.replace('vaults/', '') 
+          : fileData.storage_path;
+
+        // CACHE BUSTING: Add timestamp to avoid stale browser cache
+        const { data: contentData, error: downloadError } = await supabase.storage
+          .from('vaults')
+          .download(`${currentPath}?t=${Date.now()}`);
+        
+        let currentContent = '';
+        if (!downloadError && contentData) {
+          currentContent = await contentData.text();
+        }
+        
+        // Append new content with a clean break
+        const base = currentContent.trimEnd();
+        const newContent = (base ? base + '\n\n' : '') + activeDockTab.content.trim();
+        
+        // Save back to storage
+        const { error: uploadError } = await supabase.storage
+          .from('vaults')
+          .upload(currentPath, newContent, {
+            upsert: true,
+            contentType: 'text/markdown'
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        // Update updated_at for realtime sync
+        // We use a tiny delay to ensure the storage system has processed the file
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await supabase.from('files').update({ updated_at: new Date().toISOString() }).eq('id', fileId);
+        
+        // DISPATCH EVENT for immediate local sync
+        window.dispatchEvent(new CustomEvent('file-content-updated', { detail: { fileId } }));
+        
+        success = true;
+      } 
+      // CASE 2: No active MD file or viewing pocket/welcome/role
+      else if (pocketId) {
+        // Create a new markdown file from content
+        const fileName = `Exported Note ${new Date().toLocaleTimeString()}.md`;
+        const file = await createFile(fileName, undefined, false, true);
+        
+        if (file) {
+          // Strip bucket name from path if present
+          const currentPath = file.storage_path.startsWith('vaults/') 
+            ? file.storage_path.replace('vaults/', '') 
+            : file.storage_path;
+
+          const { error: uploadError } = await supabase.storage
+            .from('vaults')
+            .upload(currentPath, activeDockTab.content, {
+              contentType: 'text/markdown',
+              upsert: true
+            });
+          
+          if (uploadError) throw uploadError;
+
+          await addFileCard(
+            pocketId, 
+            file.id, 
+            file.name, 
+            'file', 
+            'text/markdown', 
+            new Blob([activeDockTab.content]).size, 
+            activeDockTab.content
+          );
+          success = true;
+        }
+      }
+
+      // Clear dock tab content ONLY on success
+      if (success) {
+        await updateTabContent(activeDockTab.id, '');
+      }
+      
+    } catch (err) {
+      console.error('Export from dock failed:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!activeDockTab || !activeDockTab.content.trim() || isProcessing) {
+      e.preventDefault();
+      return;
+    }
+    
+    e.dataTransfer.setData('nodeId', activeDockTab.id);
+    e.dataTransfer.setData('nodeType', 'dock-content');
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Create a ghost image
+    const dragIcon = document.createElement('div');
+    dragIcon.style.padding = '8px';
+    dragIcon.style.background = 'var(--paper-ivory)';
+    dragIcon.style.border = 'var(--border-medium)';
+    dragIcon.style.borderRadius = '4px';
+    dragIcon.style.position = 'absolute';
+    dragIcon.style.top = '-1000px';
+    dragIcon.innerText = 'New Note';
+    document.body.appendChild(dragIcon);
+    e.dataTransfer.setDragImage(dragIcon, 20, 20);
+    setTimeout(() => document.body.removeChild(dragIcon), 0);
+  };
+
+  const isMdActive = activeMainTab?.type === 'file' && activeMainTab.fileExtension?.toLowerCase() === 'md';
+  const isPlusDisabled = (activeMainTab?.type === 'file' && !isMdActive) || !activeDockTab?.content.trim() || isProcessing;
+
   if (isInitialLoad) {
     return null; // Or a skeleton loader
   }
 
   return (
-    <footer className="main-panel-dock">
+    <footer className={`main-panel-dock ${isFolded ? 'is-folded' : ''}`}>
+      <button 
+        className="dock-fold-trigger" 
+        onClick={() => setIsFolded(!isFolded)}
+        title={isFolded ? "Unfold Dock" : "Fold Dock"}
+      >
+        {isFolded && <ChevronUpIcon />}
+      </button>
       <div className="dock-stack">
-        {/* Top: Live Dock (Always Visible) */}
-        <div className="dock-live-part">
-          <div className="live-dock-container">
-            <div className="live-editor-wrapper">
-              <DockEditor />
-              <button className="std-button ghost square small enter-btn" aria-label="Enter">
-                <EnterIcon />
-              </button>
-            </div>
-
-            <div className="live-dock-footer">
-              <div className="live-dock-tabs">
-                <div 
-                  ref={scrollRef}
-                  className="tab-list"
-                  style={{ 
-                    maskImage: getMaskImage(),
-                    WebkitMaskImage: getMaskImage()
-                  }}
-                >
-                  {tabs.map((tab, index) => {
-                    const id = index + 1;
-                    const hasContent = tab.content.trim().length > 0;
-                    const isConfirming = confirmingDelete === tab.id;
-
-                    return (
-                      <div key={tab.id} className="dock-tab-wrapper">
-                        <button 
-                          className={`std-button square small tab-btn ${activeTabIndex === index ? 'active' : ''}`}
-                          onClick={() => setActiveTabIndex(index)}
-                        >
-                          {id}
-                          {tabs.length > 1 && (
-                            <div 
-                              className="dock-tab-close" 
-                              onClick={(e) => handleCloseTab(e, tab.id, hasContent)}
-                              onPointerDown={(e) => e.stopPropagation()}
-                            >
-                              <CloseIcon />
-                            </div>
-                          )}
-                        </button>
-                        {isConfirming && (
-                          <DeleteConfirmation 
-                            onConfirm={confirmDelete}
-                            onCancel={() => setConfirmingDelete(null)}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                  <button 
-                    className="std-button ghost square small add-tab-btn" 
-                    aria-label="Add Tab"
-                    onClick={addTab}
-                  >
-                    <PlusIcon />
-                  </button>
-                </div>
-              </div>
-
-              <div className="live-dock-actions-right">
-                <button className="std-button ghost square small" aria-label="Attach" disabled>
-                  <PaperclipIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Microphone" disabled>
-                  <MicrophoneIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Clipboard" disabled>
-                  <ClipboardIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Export" disabled>
-                  <ExportIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Convert" disabled>
-                  <ConvertIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Expand" disabled>
-                  <ChevronUpIcon />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Middle: Panel-dependent controls (Collapsible) */}
+        {/* Top: Panel-dependent controls (Collapsible) */}
         <div className={`dock-collapsible-section ${showPanelPart ? 'is-expanded' : ''}`}>
           <div className="dock-collapsible-content">
-            <div className="dock-divider" />
             <div className="dock-panel-part">
               {renderedPocketView === 'feed' && (
                 <div className="dock-panel-controls feed-controls">
@@ -497,6 +557,104 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: D
                   </button>
                 </div>
               )}
+            </div>
+            <div className="dock-divider" />
+          </div>
+        </div>
+
+        {/* Bottom: Live Dock (Always Visible) */}
+        <div className="dock-live-part">
+          <div className="live-dock-container">
+            <div className="live-editor-wrapper">
+              <DockEditor />
+              <button 
+                className="std-button ghost square small enter-btn" 
+                aria-label="Add content"
+                onClick={handleAddFromDock}
+                disabled={isPlusDisabled}
+                draggable={!isPlusDisabled}
+                onDragStart={handleDragStart}
+                title={isMdActive ? "Append to active Markdown" : "Export to Desk as Markdown"}
+              >
+                <PlusIcon />
+              </button>
+            </div>
+
+            <div className="live-dock-footer">
+              <div className="live-dock-tabs">
+                <div 
+                  ref={scrollRef}
+                  className="tab-list"
+                  style={{ 
+                    maskImage: getMaskImage(),
+                    WebkitMaskImage: getMaskImage()
+                  }}
+                >
+                  {tabs.map((tab, index) => {
+                    const id = index + 1;
+                    const hasContent = tab.content.trim().length > 0;
+                    const isConfirming = confirmingDelete === tab.id;
+
+                    return (
+                      <div key={tab.id} className="dock-tab-wrapper">
+                        <button 
+                          className={`std-button square small tab-btn ${activeTabIndex === index ? 'active' : ''}`}
+                          onClick={() => setActiveTabIndex(index)}
+                        >
+                          {id}
+                        </button>
+                        {tabs.length > 1 && (
+                          <div 
+                            className="dock-tab-close" 
+                            onClick={(e) => handleCloseTab(e, tab.id, hasContent)}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <CloseIcon />
+                          </div>
+                        )}
+                        {isConfirming && (
+                          <DeleteConfirmation 
+                            onConfirm={confirmDelete}
+                            onCancel={() => setConfirmingDelete(null)}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                  <button 
+                    className="std-button ghost square small add-tab-btn" 
+                    aria-label="Add Tab"
+                    onClick={addTab}
+                  >
+                    <PlusIcon />
+                  </button>
+                </div>
+              </div>
+
+              <div className="live-dock-actions-right">
+                <button className="std-button ghost square small" aria-label="Attach" disabled>
+                  <PaperclipIcon />
+                </button>
+                <button className="std-button ghost square small" aria-label="Microphone" disabled>
+                  <MicrophoneIcon />
+                </button>
+                <button className="std-button ghost square small" aria-label="Clipboard" disabled>
+                  <ClipboardIcon />
+                </button>
+                <button className="std-button ghost square small" aria-label="Export" disabled>
+                  <ExportIcon />
+                </button>
+                <button className="std-button ghost square small" aria-label="Convert" disabled>
+                  <ConvertIcon />
+                </button>
+                <button 
+                  className={`std-button ghost square small ${isFolded ? 'active' : ''}`}
+                  aria-label={isFolded ? "Unfold" : "Fold"}
+                  onClick={() => setIsFolded(!isFolded)}
+                >
+                  <ChevronUpIcon />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'loading' | 'error';
 
 interface ToolbarProps {
   title?: string;
@@ -15,6 +15,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     switch (saveStatus) {
       case 'saving': return 'Saving...';
       case 'saved': return 'All changes saved';
+      case 'loading': return 'Syncing...';
       case 'error': return 'Error saving';
       default: return '';
     }

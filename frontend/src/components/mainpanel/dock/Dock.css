@@ -1,5 +1,6 @@
 /* ===============================================
    MAIN PANEL DOCK STYLES
+   Refined Neo-Brutalist Aesthetic
    =============================================== */
 
 .main-panel-dock {
@@ -7,10 +8,67 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 900px; /* Exact same bound as content */
-  padding: 0 var(--space-sm) 0 var(--space-sm); /* Half of content's side margin; 0 bottom */
+  max-width: 900px;
+  padding: 0 var(--space-sm) 0 var(--space-sm);
   background-color: transparent;
   flex-shrink: 0;
+  position: relative;
+  z-index: var(--z-sticky);
+  /* Matches MainPanel.css grid transition for perfect sync */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible; /* CRITICAL: keep trigger visible when max-height is 0 */
+}
+
+.main-panel-dock.is-folded {
+  transform: translateY(100%); /* Completely hide the stack, only absolute trigger remains visible */
+}
+
+.dock-fold-trigger {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 8px;
+  background-color: var(--paper-ivory);
+  border: 1px solid var(--ink-faint);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  color: var(--ink-black);
+  transition: all 0.3s var(--transition-physical);
+  opacity: 0.4;
+}
+
+.main-panel-dock.is-folded .dock-fold-trigger {
+  top: -18px; /* Lowered from -24px */
+  height: 18px; /* Reduced from 24px */
+  width: 32px; /* Reduced from 40px */
+  opacity: 1;
+  border: var(--border-medium);
+  border-bottom: none;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dock-fold-trigger svg {
+  width: 10px; /* Reduced from 12px */
+  height: 10px; /* Reduced from 12px */
+}
+
+.dock-fold-trigger:hover {
+  opacity: 1;
+  background-color: var(--paper-linen);
+  top: -10px;
+  height: 10px;
+}
+
+.main-panel-dock.is-folded .dock-fold-trigger:hover {
+  top: -22px;
+  height: 22px;
 }
 
 .dock-stack {
@@ -20,21 +78,18 @@
   width: 100%;
   background-color: var(--paper-ivory);
   border: var(--border-medium);
-  border-bottom: none; /* Remove bottom border to sit flush with screen edge */
-  border-radius: 4px 4px 0 0; /* Match editor corners */
-  padding: 0; /* Padding will be handled by internal parts */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s var(--transition-physical), opacity 0.4s ease;
   overflow: hidden;
   position: relative;
-  z-index: 5;
+  /* Neo-brutalist depth offset */
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.dock-divider {
-  width: 80%;
-  height: 1px;
-  background-color: var(--ink-faint);
-  opacity: 0.3;
-  margin: 2px auto;
+.main-panel-dock.is-folded .dock-stack {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Collapsible Section Wrapper using the Grid Trick */
@@ -42,8 +97,7 @@
   width: 100%;
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dock-collapsible-section.is-expanded {
@@ -52,10 +106,12 @@
 
 .dock-collapsible-content {
   min-height: 0;
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-20px);
   pointer-events: none;
+  background-color: var(--paper-cream);
 }
 
 .dock-collapsible-section.is-expanded .dock-collapsible-content {
@@ -65,14 +121,38 @@
 }
 
 .dock-divider {
-  width: 80%;
-  height: 1px;
-  background-color: var(--ink-faint);
-  opacity: 0.3;
-  margin: 0 auto;
+  width: 100%;
+  height: 2px;
+  background-color: var(--ink-black);
+  opacity: 0.1;
+  margin: 0;
 }
 
-/* 1. Live Dock Part (Top) */
+/* 1. Panel Dependent Part (Now on Top) */
+.dock-panel-part {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-xs) var(--space-md);
+}
+
+.dock-panel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  height: 36px;
+}
+
+.feed-controls {
+  gap: var(--space-sm);
+}
+
+.desk-controls {
+  gap: var(--space-sm);
+}
+
+/* 2. Live Dock Part (Bottom) */
 .dock-live-part {
   width: 100%;
   display: flex;
@@ -89,21 +169,35 @@
   gap: 4px;
   width: 100%;
   max-width: 850px;
-  background-color: var(--paper-cream);
+  background-color: var(--paper-oatmeal);
   border: var(--border-thin);
   border-radius: 4px;
-  padding: 6px;
+  padding: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.live-dock-container:focus-within {
+  border-color: var(--accent-deep-teal);
+}
+
+.live-editor-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
 }
 
 .live-dock-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 4px;
-  border-top: 1px solid var(--ink-faint);
-  height: 36px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px dashed var(--ink-faint);
+  height: 50px; /* Increased further to provide safe vertical clearance */
 }
 
+/* Tabs and Actions */
 .live-dock-tabs {
   display: flex;
   align-items: center;
@@ -117,18 +211,15 @@
 .tab-list {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible; /* Changed from hidden to avoid cutting off icons */
   flex: 1;
   min-width: 0;
   height: 100%;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  
-  /* Creative fade effect to indicate more content */
-  mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 20px, black calc(100% - 20px), transparent);
+  padding: 8px 4px; /* Increased padding */
 }
 
 .tab-list::-webkit-scrollbar {
@@ -137,40 +228,45 @@
 
 .tab-btn, .add-tab-btn {
   background-color: var(--paper-kraft) !important;
-  border-color: transparent !important;
-  color: var(--ink-medium) !important;
-  font-size: 0.7rem !important;
-  opacity: 0.8;
-  min-width: 28px !important;
-  height: 28px !important;
+  border: var(--border-thin) !important;
+  color: var(--ink-dark) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  min-width: 30px !important;
+  height: 30px !important;
   flex-shrink: 0;
   position: relative;
+  box-shadow: 1px 1px 0 var(--ink-black);
 }
 
 .tab-btn:hover, .add-tab-btn:hover {
-  background-color: var(--paper-cream) !important;
-  opacity: 1;
+  background-color: var(--paper-linen) !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--ink-black);
+}
+
+.tab-btn:active, .add-tab-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 var(--ink-black);
+}
+
+.tab-btn.active {
+  background-color: var(--accent-deep-teal) !important;
+  color: var(--paper-ivory) !important;
+  border-color: var(--accent-deep-teal) !important;
+  box-shadow: 1px 1px 0 var(--ink-black);
 }
 
 .add-tab-btn {
   background-color: transparent !important;
-  border: 1px dashed var(--ink-faint) !important;
-  opacity: 0.6;
+  border: 1px dashed var(--ink-medium) !important;
+  box-shadow: none;
 }
 
 .add-tab-btn:hover {
   background-color: var(--paper-linen) !important;
   border-style: solid !important;
-  border-color: var(--accent-deep-teal) !important;
-  color: var(--accent-deep-teal) !important;
-  opacity: 1;
-}
-
-.tab-btn.active {
-  background-color: var(--accent-deep-teal-faded) !important;
-  color: var(--accent-deep-teal) !important;
-  border-color: var(--accent-deep-teal) !important;
-  opacity: 1;
+  box-shadow: 1px 1px 0 var(--ink-black);
 }
 
 .dock-tab-wrapper {
@@ -181,213 +277,67 @@
 
 .dock-tab-close {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -2px;
+  right: -2px;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: white;
-  color: var(--ink-medium);
-  border: none;
+  background-color: var(--paper-ivory);
+  color: var(--ink-black);
+  border: 1px solid var(--ink-black);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: all 0.15s ease;
+  transition: all 0.2s var(--transition-physical);
   z-index: 10;
   padding: 0;
 }
 
-.tab-btn:hover .dock-tab-close {
+.dock-tab-close svg {
+  width: 8px;
+  height: 8px;
+}
+
+.dock-tab-wrapper:hover .dock-tab-close {
   opacity: 1;
 }
 
 .dock-tab-close:hover {
-  color: var(--accent-oxblood);
+  background-color: var(--accent-oxblood);
+  color: white;
   transform: scale(1.1);
-}
-
-.dock-delete-confirm {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  background-color: var(--paper-ivory);
-  border: var(--border-thin);
-  border-radius: 4px;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 2px 2px 0px var(--paper-kraft);
-  z-index: 100;
-  min-width: 90px;
-  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes popIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.9); }
-  to { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1); }
-}
-
-.confirm-text {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--ink-dark);
-  white-space: nowrap;
-}
-
-.confirm-actions {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-}
-
-.confirm-btn {
-  flex: 1;
-  border: 1px solid var(--ink-faint);
-  background: var(--paper-cream);
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  padding: 2px 4px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: all 0.1s ease;
-}
-
-.confirm-btn.yes:hover {
-  background-color: #fee2e2;
-  color: var(--accent-oxblood);
-  border-color: var(--accent-oxblood);
-}
-
-.confirm-btn.no:hover {
-  background-color: var(--paper-linen);
-  color: var(--ink-dark);
-}
-
-.tab-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 4px;
-  padding-left: 4px;
-  border-left: 1px solid var(--ink-faint);
-  flex-shrink: 0;
-  height: 28px;
 }
 
 .live-dock-actions-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
-  height: 28px;
-}
-
-.live-editor-wrapper {
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.live-editor-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--ink-dark);
-  padding: 4px;
-  resize: none;
-  line-height: 1.5;
-  max-height: calc(1.5em * 5 + 8px);
-  overflow-y: auto;
-  display: block;
-  min-height: 32px;
-}
-
-/* Custom scrollbar styling resembling CustomScrollbar.css */
-.live-editor-input::-webkit-scrollbar {
-  width: 4px;
-}
-
-.live-editor-input::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.live-editor-input::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 0;
-}
-
-.live-editor-input::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.15);
+  height: 100%;
 }
 
 .enter-btn {
-  border: none !important;
-  background: transparent !important;
   color: var(--ink-medium) !important;
-  padding: 0 4px !important;
-  min-height: 28px !important;
-  width: 28px !important;
+  transition: color 0.2s ease !important;
 }
 
 .enter-btn:hover {
   color: var(--accent-deep-teal) !important;
+  background-color: var(--paper-linen) !important;
 }
 
-/* 2. Panel Dependent Part (Middle) */
-.dock-panel-part {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: var(--space-xs) var(--space-md);
-}
-
-.dock-panel-spacer {
-  height: 8px;
-}
-
-.dock-panel-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  height: 40px;
-}
-
-.feed-controls {
-  gap: var(--space-sm);
-}
-
-.desk-controls {
-  gap: var(--space-sm);
-}
-
-.dock-divider-vertical {
-  width: 1px;
-  height: 20px;
-  background-color: var(--ink-faint);
-  opacity: 0.3;
-  margin: 0 var(--space-xs);
-}
-
-/* Desk Total Counts */
+/* Desk Total Counts Styling */
 .dock-total-counts {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 4px 12px;
-  background: var(--paper-linen);
-  border: 1px solid var(--ink-faint);
-  border-radius: 4px;
-  margin-right: 4px;
+  padding: 4px 10px;
+  background: var(--paper-ivory);
+  border: var(--border-thin);
+  border-radius: 2px;
+  box-shadow: 1px 1px 0 var(--ink-black);
 }
 
 .total-count-item {
@@ -395,24 +345,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 50px;
 }
 
 .total-count-value {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  color: var(--accent-deep-teal);
-  line-height: 1;
+  color: var(--ink-black);
+  line-height: 1.1;
 }
 
 .total-count-label {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   text-transform: uppercase;
-  color: var(--ink-medium);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  color: var(--ink-light);
+  font-weight: 700;
+  letter-spacing: 0.05em;
   margin-top: 1px;
 }
 
@@ -420,28 +369,77 @@
   width: 1px;
   height: 16px;
   background-color: var(--ink-faint);
-  opacity: 0.5;
 }
 
+.dock-divider-vertical {
+  width: 2px;
+  height: 18px;
+  background-color: var(--ink-black);
+  opacity: 0.15;
+  margin: 0 var(--space-sm);
+}
+
+/* Special Button Styling */
 .refresh-button {
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 2px !important;
-  box-shadow: 0 4px 12px rgba(0, 102, 102, 0.2);
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  margin: 0 4px;
+  width: 36px !important;
+  height: 36px !important;
+  box-shadow: 2px 2px 0 var(--ink-black) !important;
+  transition: all 0.15s var(--transition-physical) !important;
 }
 
 .refresh-button svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
 .refresh-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 102, 102, 0.25);
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 3px 3px 0 var(--ink-black) !important;
 }
 
 .refresh-button:active {
-  transform: scale(0.95) translateY(1px);
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0 var(--ink-black) !important;
+}
+
+/* Delete Confirmation */
+.dock-delete-confirm {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--paper-ivory);
+  border: var(--border-medium);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 4px 4px 0 var(--ink-black);
+  z-index: 100;
+  min-width: 110px;
+  animation: slideUpFade 0.2s var(--transition-physical);
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.confirm-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-black);
+}
+
+.confirm-btn {
+  border: var(--border-thin);
+  box-shadow: 1px 1px 0 var(--ink-black);
+  font-weight: 700;
+}
+
+.confirm-btn.yes:hover {
+  background-color: var(--accent-oxblood);
+  color: white;
 }

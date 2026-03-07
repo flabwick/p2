@@ -2,7 +2,9 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDeskStore } from '@/features/pockets/store/deskStore';
 import { useVaultStore } from '@/features/vault/store/vaultStore';
 import { usePocketStore } from '@/features/pockets/store/pocketStore';
+import { useDockStore } from '@/features/dock/store/dockStore';
 import { DeskFileCard } from './components/DeskFileCard';
+import { supabase } from '@/lib/supabase';
 import { CustomScrollbar } from '@/components/ui/CustomScrollbar';
 import { 
   SearchIcon, FolderOpenIcon, ChevronRightIcon, ChevronDownIcon, 
@@ -42,8 +44,9 @@ export const DeskViewer: React.FC<DeskViewerProps> = ({ pocketId }) => {
     isAddPopupVisible,
     setIsAddPopupVisible
   } = useDeskStore();
-  const { folders, files, fetchVaultContent, activeVaultId } = useVaultStore();
+  const { folders, files, fetchVaultContent, activeVaultId, createFile } = useVaultStore();
   const { pockets, fetchPockets } = usePocketStore();
+  const { tabs: dockTabs, activeTabIndex: activeDockTabIndex, updateTabContent } = useDockStore();
   
   const [activeTab, setActiveTab] = useState<'shelf' | 'library'>('shelf');
   const [searchTerm, setSearchTerm] = useState('');
@@ -176,6 +179,7 @@ export const DeskViewer: React.FC<DeskViewerProps> = ({ pocketId }) => {
     console.log('[DeskViewer] Native drag enter');
     
     const isPocket = e.dataTransfer.types.includes('application/x-pocket');
+    const isDockContent = e.dataTransfer.types.includes('dock-content');
     if (!isPocket) {
       setIsNativeDragging(true);
     }
@@ -213,6 +217,38 @@ export const DeskViewer: React.FC<DeskViewerProps> = ({ pocketId }) => {
     setIsNativeDragging(false);
     setNativeDragOverIndex(null);
     
+    if (nodeType === 'dock-content' && pocketId) {
+      const activeTab = dockTabs[activeDockTabIndex];
+      if (!activeTab || !activeTab.content.trim()) return;
+
+      const fileName = `Note ${new Date().toLocaleTimeString()}.md`;
+      const file = await createFile(fileName, undefined, false, true);
+      
+      if (file) {
+        await supabase.storage
+          .from('vaults')
+          .upload(file.storage_path, activeTab.content, {
+            contentType: 'text/markdown',
+            upsert: true
+          });
+        
+        await addFileCard(
+          pocketId, 
+          file.id, 
+          file.name, 
+          'file', 
+          'text/markdown', 
+          new Blob([activeTab.content]).size, 
+          activeTab.content,
+          finalIndex
+        );
+
+        // Clear dock tab
+        await updateTabContent(activeTab.id, '');
+      }
+      return;
+    }
+
     if (nodeId && pocketId && nodeType !== 'pocket') {
       const desk = desks[pocketId];
       const items = desk?.feed_state?.items || [];

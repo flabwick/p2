@@ -216,6 +216,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
     const vaultFiles = (useVaultStore as any).getState().files;
     const file = vaultFiles.find((f: any) => f.id === fileId);
     const isOnShelf = file?.is_on_shelf || false;
+    const isInLibrary = file ? (!!file.folder_id || !file.is_on_desk) : false;
 
     set(state => {
       const desk = state.desks[pocketId];
@@ -233,7 +234,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
         mime_type, 
         size,
         content,
-        is_liked: isOnShelf, // Sync with shelf status
+        is_liked: isOnShelf || isInLibrary, // Sync with vault status
         order: index !== undefined ? index : desk.feed_state.items.length
       };
 

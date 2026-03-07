@@ -27,6 +27,7 @@ export function MainPanel({
   sidebarOffset
 }: MainPanelProps) {
   const [pocketView, setPocketView] = useState<PocketSubView>('desk')
+  const [isFolded, setIsFolded] = useState(false)
 
   const renderViewer = () => {
     switch (activeTab.type) {
@@ -57,7 +58,7 @@ export function MainPanel({
         activeTab={activeTab}
       />
       
-      <div className="main-panel-body" style={{ marginLeft: `${sidebarOffset}px` }}>
+      <div className={`main-panel-body ${isFolded ? 'dock-folded' : ''}`} style={{ marginLeft: `${sidebarOffset}px` }}>
         <CustomScrollbar className={`main-panel-scroller ${isFixedViewer ? 'no-scroll full-height' : ''}`}>
           <main className={`main-panel-content ${isFixedViewer ? 'fixed-viewer full-height' : ''}`}>
             {renderViewer()}
@@ -69,6 +70,8 @@ export function MainPanel({
           pocketView={pocketView}
           onPocketViewChange={setPocketView}
           pocketId={activeTab.fileId}
+          isFolded={isFolded}
+          setIsFolded={setIsFolded}
         />
       </div>
     </div>

@@ -9,6 +9,7 @@
   min-height: 32px;
   max-height: 160px; /* Approximately 7 lines of text at 14px font size + padding */
   background: transparent !important;
+  outline: none !important;
 }
 
 .dock-editor-container .cm-scroller {
