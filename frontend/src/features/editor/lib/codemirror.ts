@@ -179,6 +179,49 @@ const syntaxLogger = ViewPlugin.fromClass(class {
   update(update: ViewUpdate) { if (update.docChanged) console.log('Syntax Tree:', syntaxTree(update.state).toString()); }
 });
 
+/**
+ * Custom extension to handle auto-scrolling when the cursor 
+ * moves near the edges of the parent scroll container.
+ * This is necessary because the editor itself has height: auto and 
+ * relies on a parent (.custom-scrollbar) for scrolling.
+ */
+const autoScrollExtension = EditorView.updateListener.of((update) => {
+  // Only trigger on actual document changes or selection moves (typing/navigation)
+  if (!update.docChanged && !update.selectionSet) return;
+  
+  const view = update.view;
+  const selection = update.state.selection.main;
+  if (!selection.empty) return; 
+  
+  const pos = selection.head;
+  const coords = view.coordsAtPos(pos);
+  if (!coords) return;
+
+  // Find the nearest scrollable parent
+  let parent = view.dom.parentElement;
+  while (parent) {
+    const style = window.getComputedStyle(parent);
+    const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && parent.scrollHeight > parent.clientHeight;
+    if (isScrollable) break;
+    parent = parent.parentElement;
+  }
+
+  if (parent) {
+    const rect = parent.getBoundingClientRect();
+    const margin = 120; // Trigger scroll when cursor is within 120px of top/bottom
+
+    if (coords.bottom > rect.bottom - margin) {
+      // Cursor is too low
+      const scrollAmount = coords.bottom - (rect.bottom - margin);
+      parent.scrollBy({ top: scrollAmount, behavior: 'auto' }); 
+    } else if (coords.top < rect.top + margin) {
+      // Cursor is too high
+      const scrollAmount = coords.top - (rect.top + margin);
+      parent.scrollBy({ top: scrollAmount, behavior: 'auto' });
+    }
+  }
+});
+
 export const createEditorState = (
   initialContent: string, 
   languageType: 'markdown' | 'plain' = 'markdown',
@@ -196,6 +239,7 @@ export const createEditorState = (
     ]),
     baseTheme,
     EditorView.lineWrapping,
+    autoScrollExtension,
     ...extensions
   ];
 

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useTabStore } from '../../tabs/store/tabStore'
 
 export function useFileContent() {
   const uploadFile = useCallback(async (file: File, vaultId: string, folderId?: string) => {
@@ -53,6 +54,9 @@ export function useFileContent() {
       .eq('id', id)
 
     if (dbError) throw dbError
+    
+    // 3. Close any tabs associated with this file
+    useTabStore.getState().closeTabsByFileId(id)
   }, [])
 
   return {

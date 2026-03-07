@@ -1,0 +1,496 @@
+/* Desk File Card V2 */
+.desk-file-card-v2 {
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: box-shadow var(--transition-physical), border var(--transition-physical), opacity var(--transition-physical);
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.desk-file-card-v2:last-child {
+  margin-bottom: 0;
+}
+
+.desk-file-card-v2.is-dragging {
+  z-index: 1000;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  opacity: 0.4;
+}
+
+.desk-file-card-v2.is-drag-overlay {
+  z-index: 10001;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+  opacity: 1;
+  transform: scale(1.02);
+  cursor: grabbing;
+}
+
+.desk-file-card-v2.is-drag-overlay .dfc-card-content {
+  display: none; /* Only show header when dragging for better performance and UX */
+}
+
+.dfc-move-popup.conflict {
+  border: 3px solid var(--accent-oxblood) !important;
+  box-shadow: 12px 12px 0px rgba(121, 26, 26, 0.2);
+  max-width: 320px;
+}
+
+.dfc-move-popup.conflict .dfc-move-header {
+  background: var(--accent-oxblood);
+  color: white;
+  border-bottom: var(--border-medium);
+}
+
+.dfc-move-popup.conflict .dfc-move-close {
+  color: white;
+}
+
+.dfc-move-popup.conflict .vault-conflict-body {
+  padding: var(--space-lg);
+  background: var(--paper-ivory);
+  line-height: 1.5;
+}
+
+.dfc-move-popup.conflict .vault-conflict-body strong {
+  color: var(--accent-oxblood);
+}
+
+.dfc-move-popup.conflict .dfc-move-actions {
+  background: var(--paper-linen);
+  border-top: var(--border-thin);
+}
+
+.desk-file-card-v2.is-placeholder {
+  border: 2px dashed var(--accent-deep-teal);
+  background: var(--paper-linen);
+  opacity: 0.6;
+  pointer-events: none;
+  transform: none !important;
+  box-shadow: none !important;
+  min-height: 36px;
+}
+
+.desk-file-card-v2.is-placeholder .dfc-card-header {
+  background: var(--accent-deep-teal-faded);
+  border-bottom: none;
+}
+
+.desk-file-card-v2.is-placeholder .dfc-title-input,
+.desk-file-card-v2.is-placeholder .dfc-icon-btn {
+  color: var(--accent-deep-teal);
+}
+
+/* Removed opacity reductions to prevent "faded" look during interaction */
+
+
+.desk-file-card-v2.in-context {
+  border: 3px solid var(--accent-burnt-orange);
+  box-shadow: 6px 6px 0px var(--accent-burnt-orange);
+}
+
+.desk-file-card-v2.folded .dfc-card-content {
+  display: none;
+}
+
+.dfc-card-header {
+  padding: 2px 8px;
+  background: var(--paper-kraft);
+  border-bottom: var(--border-thin);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: default;
+  height: 36px;
+}
+
+.desk-file-card-v2.folded .dfc-card-header {
+  border-bottom: none;
+}
+
+.dfc-icon-btn.drag-handle {
+  cursor: grab;
+  color: var(--ink-faint);
+  padding: 4px;
+}
+
+.dfc-icon-btn.drag-handle:active {
+  cursor: grabbing;
+  color: var(--ink-black);
+}
+
+
+.dfc-card-header:active {
+  cursor: grabbing;
+}
+
+.dfc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dfc-title-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  max-width: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Removed hover background to prevent fading effect during rename */
+
+
+.dfc-title-wrapper {
+  display: inline-grid;
+  vertical-align: top;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+.dfc-title-input, .dfc-title-measure {
+  grid-area: 1 / 1;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0;
+  margin: 0;
+  white-space: pre;
+  border: none;
+  letter-spacing: normal;
+}
+
+.dfc-title-input {
+  background: transparent;
+  color: var(--ink-black);
+  width: 100%;
+  min-width: 0;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dfc-title-input:focus {
+  cursor: text;
+}
+
+.dfc-title-measure {
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.dfc-title-extension {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  pointer-events: none;
+  user-select: none;
+  padding-left: 1px;
+}
+
+/* Word and Token Counts */
+.dfc-counts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--ink-faint);
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dfc-counts:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--ink-medium);
+}
+
+.dfc-count-item {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.dfc-count-value {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent-deep-teal);
+}
+
+.dfc-count-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  text-transform: lowercase;
+  color: var(--ink-medium);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.dfc-count-divider {
+  color: var(--ink-faint);
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.dfc-header-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dfc-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: none !important; /* Explicitly kill any leaked borders */
+}
+
+.dfc-control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.desk-file-card-v2.is-hidden {
+  border: var(--border-dotted);
+  background: var(--paper-linen);
+  opacity: 0.75;
+}
+
+.desk-file-card-v2.is-hidden .dfc-card-header {
+  background: transparent;
+  opacity: 0.8;
+}
+
+.dfc-icon-btn {
+  background: transparent;
+  border: none !important; /* Ensure no borders */
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-medium);
+  transition: all 0.1s ease;
+  border-radius: 4px;
+}
+
+.dfc-icon-btn:hover {
+  background: var(--paper-linen);
+  color: var(--ink-black);
+}
+
+.dfc-icon-btn.spotify-btn {
+  color: var(--ink-light);
+}
+
+.dfc-icon-btn.spotify-btn:hover {
+  color: var(--accent-deep-teal);
+  background: rgba(0, 102, 102, 0.05);
+}
+
+.dfc-icon-btn.spotify-btn.active {
+  color: var(--accent-deep-teal);
+  fill: var(--accent-deep-teal-faded);
+}
+
+.dfc-icon-btn.muted {
+  opacity: 0.5;
+}
+
+.dfc-icon-btn.danger:hover {
+  background: #fee2e2;
+  color: var(--accent-oxblood);
+}
+
+/* Vault Move Popup - FIXED POSITION centered in the MAIN PANEL */
+.dfc-move-overlay {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width, 0px); /* Start after sidebar */
+  right: 0; /* End at screen edge */
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(2px);
+  padding: var(--space-md);
+}
+
+.dfc-move-popup {
+  background: var(--paper-ivory);
+  border: 3px solid var(--ink-black) !important; /* Explicit robust border */
+  box-shadow: 12px 12px 0px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dfc-move-header {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-thin);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--paper-kraft);
+}
+
+.dfc-move-header span {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.dfc-move-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 4px;
+}
+
+.dfc-move-search {
+  padding: var(--space-sm);
+  background: var(--paper-linen);
+}
+
+.dfc-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper-cream);
+  border: var(--border-thin);
+  padding: 4px 8px;
+}
+
+.dfc-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+.dfc-move-list-container {
+  flex: 1;
+  min-height: 200px;
+  max-height: 300px;
+}
+
+.dfc-move-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.dfc-move-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--space-xs) var(--space-sm);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ink-faint);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.dfc-move-item:hover {
+  background: var(--paper-cream);
+}
+
+.dfc-move-item.selected {
+  background: var(--accent-deep-teal-faded);
+  border-left: 4px solid var(--accent-deep-teal);
+}
+
+.dfc-move-item-path {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-dark);
+}
+
+.dfc-move-actions {
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  border-top: var(--border-thin);
+}
+
+.dfc-card-content {
+  background: transparent;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+}
+
+.dfc-viewer-wrapper {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Overrides for embedded viewers to make them "contained" */
+.dfc-viewer-wrapper .viewer-container {
+  height: auto;
+  min-height: 24px;
+}
+
+.dfc-viewer-wrapper .markdown-editor-container {
+  height: auto;
+  overflow-y: visible;
+}
+
+.dfc-viewer-wrapper .cm-editor {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.dfc-viewer-wrapper .cm-scroller {
+  overflow: visible !important;
+}
+
+.dfc-viewer-wrapper .cm-content {
+  padding: var(--space-sm) !important;
+}
+
+.dfc-viewer-wrapper .editor-spacer {
+  display: none;
+}
+
+.dfc-viewer-wrapper .editor-workspace {
+  margin: 0;
+  width: 100%;
+  border: none;
+  box-shadow: none;
+}

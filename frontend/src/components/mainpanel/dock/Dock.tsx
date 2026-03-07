@@ -1,6 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useDockStore } from '@/features/dock/store/dockStore'
+import { useDeskStore } from '@/features/pockets/store/deskStore'
+import { useVaultStore } from '@/features/vault/store/vaultStore'
 import { DockEditor } from '@/features/dock/components/DockEditor'
+import { supabase } from '@/lib/supabase'
 import './Dock.css'
 
 export type MainPanelView = 'pocket' | 'file' | 'role'
@@ -10,6 +13,7 @@ interface DockProps {
   activeView: MainPanelView
   pocketView: PocketSubView
   onPocketViewChange: (view: PocketSubView) => void
+  pocketId?: string
 }
 
 const RefreshIcon = () => (
@@ -111,6 +115,31 @@ const CloseIcon = () => (
   </svg>
 );
 
+const FileTextIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
+const UploadIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
 interface DeleteConfirmationProps {
   onConfirm: () => void;
   onCancel: () => void;
@@ -126,7 +155,7 @@ const DeleteConfirmation = ({ onConfirm, onCancel }: DeleteConfirmationProps) =>
   </div>
 );
 
-export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) {
+export function Dock({ activeView, pocketView, onPocketViewChange, pocketId }: DockProps) {
   const { 
     tabs, 
     activeTabIndex, 
@@ -137,9 +166,38 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
     isInitialLoad
   } = useDockStore();
 
+  const { addFileCard, setIsAddPopupVisible, desks } = useDeskStore();
+  const { createFile, uploadFile } = useVaultStore();
+
+  const desk = pocketId ? desks[pocketId] : null;
+  const deskItems = desk?.feed_state?.items || [];
+  
+  const totalCounts = useMemo(() => {
+    return deskItems
+      .filter(item => !item.is_hidden)
+      .reduce((acc, item) => ({
+        words: acc.words + (item.word_count || 0),
+        tokens: acc.tokens + (item.token_count || 0)
+      }), { words: 0, tokens: 0 });
+  }, [deskItems]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [scrollState, setScrollState] = useState({ left: false, right: false });
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+
+  // Keep track of which subview to render in the collapsible part to avoid jumps during animation
+  const [renderedPocketView, setRenderedPocketView] = useState(pocketView);
+  const showPanelPart = activeView === 'pocket' && (pocketView === 'feed' || pocketView === 'desk');
+
+  useEffect(() => {
+    // Only update the rendered content if we are expanded or becoming expanded
+    if (showPanelPart) {
+      setRenderedPocketView(pocketView);
+    }
+    // When showPanelPart becomes false, we DON'T update renderedPocketView immediately,
+    // so the old content stays there while the grid-row animates to 0.
+  }, [pocketView, showPanelPart]);
 
   const updateScrollState = () => {
     if (scrollRef.current) {
@@ -192,7 +250,74 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
     }
   };
 
-  const showPanelPart = activeView === 'pocket' && pocketView === 'feed';
+  const handleCreateMd = async () => {
+    if (!pocketId) return;
+    try {
+      const fileName = 'New Document.md';
+      // createFile(name, folderId, isOnShelf, isOnDesk)
+      const file = await createFile(fileName, undefined, false, true);
+      if (file) {
+        // Initialize storage object immediately so Editor doesn't 404
+        const defaultContent = '';
+        const initialSize = 0;
+        
+        await supabase.storage
+          .from('vaults')
+          .upload(file.storage_path, defaultContent, {
+            contentType: 'text/markdown',
+            upsert: true
+          });
+
+        await addFileCard(pocketId, file.id, file.name, 'file', 'text/markdown', initialSize, defaultContent);
+      }
+    } catch (err) {
+      console.error('Create MD failed:', err);
+    }
+  };
+
+  const handleCreateFile = async () => {
+    if (!pocketId) return;
+    try {
+      const fileName = 'New File';
+      const file = await createFile(fileName, undefined, false, true);
+      if (file) {
+        const defaultContent = '';
+        // Initialize storage object immediately
+        await supabase.storage
+          .from('vaults')
+          .upload(file.storage_path, defaultContent, {
+            contentType: 'application/octet-stream',
+            upsert: true
+          });
+
+        await addFileCard(pocketId, file.id, file.name, 'file', 'application/octet-stream', 0, defaultContent);
+      }
+    } catch (err) {
+      console.error('Create file failed:', err);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && pocketId) {
+      try {
+        const uploadedFile = await uploadFile(file, undefined, false, true);
+        if (uploadedFile) {
+          await addFileCard(
+            pocketId, 
+            uploadedFile.id, 
+            uploadedFile.name, 
+            'file', 
+            uploadedFile.mime_type, 
+            uploadedFile.size
+          );
+        }
+      } catch (err) {
+        console.error('Upload failed:', err);
+      }
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   if (isInitialLoad) {
     return null; // Or a skeleton loader
@@ -291,25 +416,87 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
           <div className="dock-collapsible-content">
             <div className="dock-divider" />
             <div className="dock-panel-part">
-              <div className="dock-panel-controls feed-controls">
-                <button className="std-button ghost square small" aria-label="Skip Back">
-                  <SkipBackIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Undo">
-                  <UndoIcon />
-                </button>
-                
-                <button className="std-button primary square refresh-button" aria-label="Refresh Feed">
-                  <RefreshIcon />
-                </button>
-                
-                <button className="std-button ghost square small" aria-label="Redo">
-                  <RedoIcon />
-                </button>
-                <button className="std-button ghost square small" aria-label="Skip Forward">
-                  <SkipForwardIcon />
-                </button>
-              </div>
+              {renderedPocketView === 'feed' && (
+                <div className="dock-panel-controls feed-controls">
+                  <button className="std-button ghost square small" aria-label="Skip Back">
+                    <SkipBackIcon />
+                  </button>
+                  <button className="std-button ghost square small" aria-label="Undo">
+                    <UndoIcon />
+                  </button>
+                  
+                  <button className="std-button primary square refresh-button" aria-label="Refresh Feed">
+                    <RefreshIcon />
+                  </button>
+                  
+                  <button className="std-button ghost square small" aria-label="Redo">
+                    <RedoIcon />
+                  </button>
+                  <button className="std-button ghost square small" aria-label="Skip Forward">
+                    <SkipForwardIcon />
+                  </button>
+                </div>
+              )}
+
+              {renderedPocketView === 'desk' && (
+                <div className="dock-panel-controls desk-controls">
+                  <div className="dock-total-counts">
+                    <div className="total-count-item">
+                      <span className="total-count-value">{totalCounts.words.toLocaleString()}</span>
+                      <span className="total-count-label">words</span>
+                    </div>
+                    <div className="total-count-divider" />
+                    <div className="total-count-item">
+                      <span className="total-count-value">{totalCounts.tokens.toLocaleString()}</span>
+                      <span className="total-count-label">tokens</span>
+                    </div>
+                  </div>
+                  
+                  <div className="dock-divider-vertical" />
+                  
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Create MD"
+                    onClick={handleCreateMd}
+                    title="Create Markdown Document"
+                  >
+                    <FileTextIcon />
+                  </button>
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Create File"
+                    onClick={handleCreateFile}
+                    title="Create Empty File"
+                  >
+                    <PlusIcon />
+                  </button>
+                  
+                  <div className="dock-divider-vertical" />
+                  
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileUpload} 
+                    style={{ display: 'none' }} 
+                  />
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Upload"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Upload File"
+                  >
+                    <UploadIcon />
+                  </button>
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Add from Vault"
+                    onClick={() => setIsAddPopupVisible(true)}
+                    title="Add from Vault"
+                  >
+                    <SearchIcon />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -317,3 +504,4 @@ export function Dock({ activeView, pocketView, onPocketViewChange }: DockProps) 
     </footer>
   )
 }
+

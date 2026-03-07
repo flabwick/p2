@@ -10,6 +10,7 @@ interface EpubProcessorProps {
   onComplete: () => void;
   className?: string;
   style?: React.CSSProperties;
+  isEmbedded?: boolean;
 }
 
 const turndownService = new TurndownService({
@@ -51,7 +52,8 @@ export const EpubProcessor: React.FC<EpubProcessorProps> = ({
   title, 
   onComplete,
   className,
-  style
+  style,
+  isEmbedded
 }) => {
   const [status, setStatus] = useState<string>('Initializing...');
   const [progress, setProgress] = useState(0);
@@ -291,7 +293,7 @@ export const EpubProcessor: React.FC<EpubProcessorProps> = ({
 
   if (error) {
     return (
-      <div className={`epub-processor-container error ${className || ''}`} style={style}>
+      <div className={`epub-processor-container error ${isEmbedded ? 'is-embedded' : ''} ${className || ''}`} style={style}>
         <div className="processor-card">
           <h2 style={{ color: 'red' }}>Deconstruction Fault</h2>
           <p style={{ fontSize: '12px', margin: '10px 0' }}>{error}</p>
@@ -302,7 +304,7 @@ export const EpubProcessor: React.FC<EpubProcessorProps> = ({
   }
 
   return (
-    <div className={`epub-processor-container ${className || ''}`} style={style}>
+    <div className={`epub-processor-container ${isEmbedded ? 'is-embedded' : ''} ${className || ''}`} style={style}>
       <div className="processor-card">
         <div className="manuscript-icon">⚒️</div>
         <h2>Segmenting Manuscript</h2>

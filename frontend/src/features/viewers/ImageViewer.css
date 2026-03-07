@@ -49,6 +49,25 @@
   cursor: zoom-out;
 }
 
+/* Desk Embedded specific constraints */
+.image-viewer-root.desk-embedded {
+  padding: var(--space-md) 0;
+  height: auto;
+  min-height: auto;
+  background: transparent;
+}
+
+.image-viewer-root.desk-embedded .image-viewer-workspace {
+  flex: none;
+  max-height: 400px;
+  box-shadow: 8px 8px 0px var(--ink-black);
+  margin-bottom: 8px; /* Offset for box shadow */
+}
+
+.image-viewer-root.desk-embedded .image-zoom-controls {
+  display: none; /* Hide zoom controls in desk view for cleaner look */
+}
+
 /* Zoom Controls */
 .image-zoom-controls {
   position: absolute;

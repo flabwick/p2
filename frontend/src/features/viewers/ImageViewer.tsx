@@ -9,9 +9,16 @@ interface ImageViewerProps {
   title: string;
   className?: string;
   style?: React.CSSProperties;
+  isEmbedded?: boolean;
 }
 
-export const ImageViewer: React.FC<ImageViewerProps> = ({ fileId, title, className, style }) => {
+export const ImageViewer: React.FC<ImageViewerProps> = ({ 
+  fileId, 
+  title, 
+  className, 
+  style,
+  isEmbedded 
+}) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(1);
@@ -69,7 +76,10 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ fileId, title, classNa
   const handleResetZoom = () => setScale(1);
 
   return (
-    <div className={`viewer-container image-viewer-root ${className || ''}`} style={style}>
+    <div 
+      className={`viewer-container image-viewer-root ${isEmbedded ? 'desk-embedded' : ''} ${className || ''}`} 
+      style={style}
+    >
       {!loading && imageUrl && (
         <div className="image-zoom-controls">
           <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">−</button>
@@ -89,7 +99,16 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ fileId, title, classNa
 
       <div 
         className="viewer-workspace image-viewer-workspace"
-        style={aspectRatio ? { aspectRatio: `${aspectRatio}`, height: 'auto' } : {}}
+        style={aspectRatio ? { 
+          aspectRatio: `${aspectRatio}`, 
+          height: 'auto',
+          maxWidth: isEmbedded ? '75%' : '100%',
+          margin: isEmbedded ? '0 auto' : '0'
+        } : {
+          width: isEmbedded ? '75%' : '100%',
+          margin: isEmbedded ? '0 auto' : '0',
+          height: isEmbedded ? '200px' : '400px'
+        }}
       >
         <div className="image-container">
           {loading ? (

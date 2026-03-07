@@ -30,7 +30,7 @@ export function MainPanel({
 
   const renderViewer = () => {
     switch (activeTab.type) {
-      case 'pocket': return <PocketViewer activeSubView={pocketView} activeTab={activeTab} />
+      case 'pocket': return <PocketViewer activeSubView={pocketView} activeTab={activeTab} onUpdateTabType={onUpdateTabType} />
       case 'file': return <FileViewer activeTab={activeTab} />
       case 'role': return <RoleViewer />
       case 'welcome': return <WelcomeSelector onSelect={onUpdateTabType} />
@@ -68,6 +68,7 @@ export function MainPanel({
           activeView={activeTab.type === 'welcome' ? 'pocket' : activeTab.type as any} 
           pocketView={pocketView}
           onPocketViewChange={setPocketView}
+          pocketId={activeTab.fileId}
         />
       </div>
     </div>

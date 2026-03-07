@@ -8,6 +8,26 @@
   background: var(--paper-cream);
 }
 
+.epub-processor-container.is-embedded {
+  aspect-ratio: 1 / 2.7;
+  height: auto;
+}
+
+.epub-processor-container.is-embedded .processor-card {
+  width: calc(100% - 20px);
+  padding: 20px 10px;
+  box-shadow: 6px 6px 0px var(--ink-black);
+}
+
+.epub-processor-container.is-embedded h2 {
+  font-size: 0.9rem;
+}
+
+.epub-processor-container.is-embedded .manuscript-icon {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
 .processor-card {
   background: white;
   border: var(--border-medium);

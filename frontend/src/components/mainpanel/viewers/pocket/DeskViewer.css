@@ -1,0 +1,246 @@
+.desk-workspace {
+  flex-shrink: 0; /* Don't stretch to fill, let it grow based on content */
+  width: calc(100% - 40px); /* Slightly more margin than the dock container for "less than" look */
+  max-width: 850px; /* Aligns with internal dock container, less than the 900px dock stack */
+  margin: auto auto 0 auto; /* margin-top: auto pins it to the bottom (above the dock) */
+  background: var(--paper-cream);
+  border: var(--border-medium);
+  border-bottom: none; /* Touches the dock */
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  box-shadow: 0 0 60px 5px rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.desk-workspace.native-drag-active {
+  border: 3px dashed var(--accent-deep-teal);
+  background: var(--paper-linen);
+  box-shadow: 0 0 80px 10px rgba(0, 102, 102, 0.2);
+}
+
+.desk-workspace.native-drag-active .desk-content {
+  background-image: radial-gradient(var(--accent-deep-teal) 0.8px, transparent 0.8px);
+  background-size: 10px 10px;
+}
+
+.desk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-medium);
+  background: var(--paper-ivory);
+}
+
+.desk-title {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Add to Desk Popup Tabs */
+.desk-popup-tabs {
+  display: flex;
+  background: var(--paper-kraft);
+  border-bottom: var(--border-thin);
+  padding: 0 8px;
+  gap: 4px;
+}
+
+.desk-popup-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-medium);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.desk-popup-tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink-black);
+}
+
+.desk-popup-tab.active {
+  border-bottom: 2px solid var(--accent-deep-teal);
+  color: var(--accent-deep-teal);
+}
+
+.desk-popup-tab svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Ensure vault tree styles work in popup */
+.dfc-move-popup .vault-tree {
+  max-height: 400px;
+}
+
+.desk-content {
+  padding: var(--space-md) var(--space-md) var(--space-md) var(--space-md);
+  /* overflow-y: auto;  Removed to let parent scroll */
+  /* max-height: 60vh; Removed to allow infinite scroll */
+  background-image: radial-gradient(var(--ink-faint) 0.5px, transparent 0.5px);
+  background-size: 10px 10px;
+}
+
+/* Custom scrollbar for desk-content */
+.desk-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.desk-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.desk-content::-webkit-scrollbar-thumb {
+  background: var(--ink-faint);
+  border-radius: 0;
+}
+
+.desk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.desk-file-card {
+  background: var(--paper-ivory);
+  border: var(--border-medium);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  position: relative;
+  transition: transform var(--transition-physical), box-shadow var(--transition-physical);
+  cursor: grab;
+  user-select: none;
+  min-height: 120px;
+}
+
+.desk-file-card:active {
+  cursor: grabbing;
+}
+
+.desk-file-card.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  z-index: 100;
+}
+
+.desk-file-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--ink-black);
+}
+
+.file-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.file-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--paper-linen);
+  border: var(--border-thin);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-card-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-paper);
+}
+
+.desk-file-card:hover .file-card-actions {
+  opacity: 1;
+}
+
+.file-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.8rem;
+  word-break: break-all;
+  margin-top: var(--space-xs);
+  line-height: 1.2;
+}
+
+.file-meta {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-medium);
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-type-tag {
+  background: var(--paper-kraft);
+  padding: 1px 4px;
+  border: var(--border-thin);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+
+.desk-empty-state {
+  border: var(--border-dashed);
+  padding: var(--space-xl) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--ink-light);
+  font-family: var(--font-mono);
+  grid-column: 1 / -1;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.empty-icon {
+  opacity: 0.5;
+}
+
+/* Icon Button Styling */
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-medium);
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  color: var(--accent-oxblood);
+  transform: scale(1.1);
+}
+
+.icon-btn.small svg {
+  width: 14px;
+  height: 14px;
+}

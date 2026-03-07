@@ -3,7 +3,7 @@ import { CustomScrollbar } from '../../ui/CustomScrollbar';
 import { 
   SearchIcon, FilterIcon, NewFileIcon, NewPocketIcon, NewFolderIcon, UploadIcon, 
   SortIcon, MarkdownIcon, FolderOpenIcon, ChevronRightIcon, ChevronDownIcon, 
-  SelectorIcon, getFileIcon, stripExtension 
+  SelectorIcon, getFileIcon, stripExtension, ShelfIcon
 } from './SidebarCommon';
 import './SidebarCommon.css';
 import './SidebarContent.css';
@@ -30,7 +30,7 @@ interface MoveState {
   nodeType: 'folder' | 'file' | null;
   nodeName: string | null;
   searchTerm: string;
-  selectedTargetId: string | null;
+  selectedTargetId: string | 'shelf' | null;
 }
 
 interface ConflictState {
@@ -39,7 +39,7 @@ interface ConflictState {
   sourceType: 'folder' | 'file' | null;
   sourceName: string | null;
   targetId: string | null;
-  targetFolderId: string | null;
+  targetFolderId: string | 'shelf' | null;
 }
 
 interface LibrarySidebarProps {
@@ -61,6 +61,8 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
   });
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [uploadTargetFolderId, setUploadTargetFolderId] = useState<string | undefined>(undefined);
+  const [expandedMoveFolders, setExpandedMoveFolders] = useState<Record<string, boolean>>({ 'root': true });
+  const [isSaving, setIsSaving] = useState(false);
 
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -116,7 +118,7 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
           id: f.id, name: f.name, type: 'folder' as const, parentId: f.parent_id || undefined, children: buildTree(f.id),
         }));
       const currentFiles = files
-        .filter((f) => (f.folder_id || null) === parentId && !f.is_on_shelf)
+        .filter((f) => (f.folder_id || null) === parentId && !f.is_on_shelf && !f.is_on_desk)
         .map((f) => ({
           id: f.id, name: f.name, 
           type: f.name.toLowerCase().endsWith('.pocket') ? 'pocket' as const : 'file' as const, 
@@ -255,17 +257,34 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
 
   const handleExecuteMove = async () => {
     if (!moveState.nodeId || !moveState.nodeType || !moveState.nodeName) return;
+    if (isSaving) return;
+
+    if (moveState.selectedTargetId === 'shelf') {
+      setIsSaving(true);
+      try {
+        await moveNode(moveState.nodeId, moveState.nodeType, null, true);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setMoveState(prev => ({ ...prev, visible: false }));
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
     if (moveState.nodeType === 'folder' && moveState.nodeId === moveState.selectedTargetId) return;
     if (moveState.nodeType === 'folder' && moveState.selectedTargetId) {
-      let currentId: string | undefined = moveState.selectedTargetId;
+      let currentId: string | undefined = moveState.selectedTargetId as string;
       while (currentId) {
         if (currentId === moveState.nodeId) return;
         currentId = folders.find(f => f.id === currentId)?.parent_id;
       }
     }
+
+    // Duplicate detection
+    const targetFolderId = moveState.selectedTargetId as string | null;
     const existing = moveState.nodeType === 'folder' 
-      ? folders.find(f => (f.name || '').trim().toLowerCase() === moveState.nodeName!.trim().toLowerCase() && (f.parent_id || null) === (moveState.selectedTargetId || null))
-      : files.find(f => (f.name || '').trim().toLowerCase() === moveState.nodeName!.trim().toLowerCase() && (f.folder_id || null) === (moveState.selectedTargetId || null));
+      ? folders.find(f => (f.name || '').trim().toLowerCase() === moveState.nodeName!.trim().toLowerCase() && (f.parent_id || null) === targetFolderId)
+      : files.find(f => !f.is_on_shelf && !f.is_on_desk && (f.name || '').trim().toLowerCase() === moveState.nodeName!.trim().toLowerCase() && (f.folder_id || null) === targetFolderId);
 
     if (existing && existing.id !== moveState.nodeId) {
       setConflictState({
@@ -274,8 +293,15 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
       });
       return;
     }
-    await moveNode(moveState.nodeId, moveState.nodeType, moveState.selectedTargetId);
-    setMoveState(prev => ({ ...prev, visible: false }));
+
+    setIsSaving(true);
+    try {
+      await moveNode(moveState.nodeId, moveState.nodeType, targetFolderId);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      setMoveState(prev => ({ ...prev, visible: false }));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -311,6 +337,12 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
   const handleDragStart = (e: React.DragEvent, node: FileNode) => {
     e.dataTransfer.setData('nodeId', node.id);
     e.dataTransfer.setData('nodeType', node.type);
+    e.dataTransfer.setData('text/plain', node.id); // Standard fallback
+    
+    if (node.type === 'pocket') {
+      e.dataTransfer.setData('application/x-pocket', node.id);
+    }
+    
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setDragImage(e.currentTarget as HTMLElement, 10, 10);
   };
@@ -349,11 +381,17 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
 
   const handleResolveConflict = async (action: 'replace' | 'cancel') => {
     if (action === 'replace' && conflictState.sourceId && conflictState.sourceType && conflictState.targetId) {
-      await deleteNode(conflictState.targetId, conflictState.sourceType);
-      await moveNode(conflictState.sourceId, conflictState.sourceType, conflictState.targetFolderId);
+      setIsSaving(true);
+      try {
+        await deleteNode(conflictState.targetId, conflictState.sourceType);
+        await moveNode(conflictState.sourceId, conflictState.sourceType, conflictState.targetFolderId as string | null);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setMoveState(prev => ({ ...prev, visible: false }));
+      } finally {
+        setIsSaving(false);
+      }
     }
     setConflictState(prev => ({ ...prev, visible: false }));
-    setMoveState(prev => ({ ...prev, visible: false }));
   };
 
   const InlineInput = ({ type, onCommit, onCancel, level = 0, initialValue = '', parentId = null, excludeId, defaultExtension }: { 
@@ -402,6 +440,62 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
           <div className={`vault-tree-children ${isDragOver ? 'drag-over-area' : ''}`}>
             {isCreating && isCreating.parentId === node.id && <InlineInput type={isCreating!.type} onCommit={handleCommitCreation} onCancel={() => setIsCreating(null)} level={level + 1} parentId={node.id} initialValue={isCreating.initialValue} defaultExtension={isCreating.defaultExtension} />}
             {node.children?.map((child) => <FileTreeNode key={child.id} node={child} level={level + 1} />)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const MoveFileTreeNode = ({ node, level = 0, nodeId, currentFolderId }: { node: FileNode; level?: number, nodeId: string, currentFolderId: string | null }) => {
+    const isFolder = node.type === 'folder';
+    const isExpanded = expandedMoveFolders[node.id];
+    const isSelected = moveState.selectedTargetId === node.id;
+    const isCurrent = currentFolderId === node.id;
+    // Don't allow moving into self or subfolders of self
+    const isSelf = node.id === nodeId;
+    
+    const { icon, colorClass } = isFolder ? { icon: <FolderOpenIcon />, colorClass: '' } : getFileIcon(node.name);
+
+    return (
+      <div key={node.id}>
+        <div 
+          className={`vault-tree-item ${isFolder && !isCurrent && !isSelf ? 'clickable' : 'disabled'} ${isSelected ? 'selected' : ''} ${isCurrent ? 'current' : ''} ${colorClass}`} 
+          style={{ 
+            paddingLeft: `${level * 12 + 12}px`,
+            opacity: isFolder ? (isCurrent || isSelf ? 0.6 : 1) : 0.4,
+            cursor: isFolder && !isCurrent && !isSelf ? 'pointer' : 'default',
+            background: isSelected ? 'var(--accent-deep-teal-faded)' : 'transparent',
+            borderLeft: isSelected ? '3px solid var(--accent-deep-teal)' : 'none'
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isFolder && !isCurrent && !isSelf) {
+              setMoveState(prev => ({ ...prev, selectedTargetId: node.id }));
+            }
+          }}
+        >
+          <div 
+            className="vault-tree-toggle" 
+            onClick={(e) => {
+              if (isFolder) {
+                e.stopPropagation();
+                setExpandedMoveFolders(prev => ({ ...prev, [node.id]: !prev[node.id] }));
+              }
+            }}
+          >
+            {isFolder ? (isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />) : <div className="vault-tree-spacer" />}
+          </div>
+          <div className="vault-tree-icon">{icon}</div>
+          <span className="vault-tree-name" style={{ fontSize: '0.7rem' }}>
+            {isFolder ? node.name : stripExtension(node.name)}
+            {isCurrent && <span style={{ opacity: 0.5, fontSize: '0.6rem', marginLeft: '4px' }}>(current)</span>}
+          </span>
+        </div>
+        {isFolder && isExpanded && (
+          <div className="vault-tree-children">
+            {node.children?.map((child) => (
+              <MoveFileTreeNode key={child.id} node={child} level={level + 1} nodeId={nodeId} currentFolderId={currentFolderId} />
+            ))}
           </div>
         )}
       </div>
@@ -497,34 +591,107 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
         <div className="vault-move-overlay">
           <div className="vault-move-popup" ref={movePopupRef}>
             <div className="vault-move-header">
-              <span>Move "{moveState.nodeName}" to...</span>
+              <span>Move "{moveState.nodeName}"</span>
               <button className="vault-move-close" onClick={() => setMoveState(prev => ({ ...prev, visible: false }))}>✕</button>
             </div>
-            <div className="vault-move-search">
-              <div className="vault-search-input-wrapper">
-                <SearchIcon />
-                <input type="text" placeholder="Search folders..." className="vault-search-input" value={moveState.searchTerm} onChange={(e) => setMoveState(prev => ({ ...prev, searchTerm: e.target.value }))} autoFocus />
-              </div>
-            </div>
-            <div className="vault-move-list-container">
+            
+            <div className="vault-move-list-container" style={{ maxHeight: '400px' }}>
               <CustomScrollbar>
-                <div className="vault-move-list">
-                  <button className={`vault-move-item ${moveState.selectedTargetId === null ? 'selected' : ''}`} onClick={() => setMoveState(prev => ({ ...prev, selectedTargetId: null }))}>
-                    <div className="vault-tree-icon"><FolderOpenIcon /></div>
-                    <span className="vault-move-item-path">Root</span>
-                  </button>
-                  {filteredFolderPaths.map(folder => (
-                    <button key={folder.id} className={`vault-move-item ${moveState.selectedTargetId === folder.id ? 'selected' : ''}`} onClick={() => setMoveState(prev => ({ ...prev, selectedTargetId: folder.id }))}>
-                      <div className="vault-tree-icon"><FolderOpenIcon /></div>
-                      <span className="vault-move-item-path">{folder.path}</span>
-                    </button>
-                  ))}
+                <div className="vault-tree" style={{ padding: '8px 0' }}>
+                  {(() => {
+                    const nodeType = moveState.nodeType;
+                    const nodeId = moveState.nodeId;
+                    let currentFolderId: string | null = null;
+                    let isOnShelf = false;
+                    if (nodeType === 'file') {
+                      const f = files.find(f => f.id === nodeId);
+                      currentFolderId = f?.folder_id || null;
+                      isOnShelf = f?.is_on_shelf || false;
+                    } else {
+                      // Folders don't support shelf yet in the same way, but we can check if it's there
+                      // Actually pockets (which are files) support shelf. Folders don't.
+                      currentFolderId = folders.find(f => f.id === nodeId)?.parent_id || null;
+                    }
+                    const isRootCurrent = currentFolderId === null && !isOnShelf;
+
+                    return (
+                      <>
+                        {/* Shelf Toggle Option */}
+                        <div 
+                          className={`vault-tree-item ${isOnShelf ? 'disabled' : 'clickable'} ${moveState.selectedTargetId === 'shelf' ? 'selected' : ''}`} 
+                          onClick={() => !isOnShelf && setMoveState(prev => ({ ...prev, selectedTargetId: 'shelf' }))}
+                          style={{ 
+                            background: moveState.selectedTargetId === 'shelf' ? 'var(--accent-deep-teal-faded)' : 'var(--paper-linen)', 
+                            marginBottom: '12px',
+                            borderLeft: moveState.selectedTargetId === 'shelf' ? '3px solid var(--accent-deep-teal)' : 'none',
+                            paddingLeft: '12px',
+                            opacity: 1
+                          }}
+                        >
+                          <div className="vault-tree-toggle"><div className="vault-tree-spacer" /></div>
+                          <div className="vault-tree-icon" style={{ color: 'var(--accent-deep-teal)' }}><ShelfIcon /></div>
+                          <span className="vault-tree-name" style={{ fontWeight: 700, color: 'var(--accent-deep-teal)', fontSize: '0.75rem' }}>
+                            {isOnShelf ? 'Shelf (Current)' : 'Add to Shelf'}
+                          </span>
+                        </div>
+
+                        <div 
+                          className={`vault-tree-item clickable ${isRootCurrent ? 'disabled' : ''} ${moveState.selectedTargetId === null ? 'selected' : ''}`} 
+                          onClick={() => !isRootCurrent && setMoveState(prev => ({ ...prev, selectedTargetId: null }))}
+                          style={{ 
+                            paddingLeft: '12px',
+                            background: moveState.selectedTargetId === null ? 'var(--accent-deep-teal-faded)' : 'transparent',
+                            borderLeft: moveState.selectedTargetId === null ? '3px solid var(--accent-deep-teal)' : 'none'
+                          }}
+                        >
+                          <div className="vault-tree-toggle"><div className="vault-tree-spacer" /></div>
+                          <div className="vault-tree-icon" style={{ opacity: 0.7 }}><FolderOpenIcon /></div>
+                          <span className="vault-tree-name" style={{ 
+                            fontSize: '0.85rem', 
+                            fontFamily: 'var(--font-mono)', 
+                            textTransform: 'lowercase',
+                            fontWeight: 800,
+                            letterSpacing: '-0.02em'
+                          }}>
+                            root {isRootCurrent && <span style={{ opacity: 0.5, fontWeight: 400, fontSize: '0.65rem', marginLeft: '4px' }}>(current)</span>}
+                          </span>
+                        </div>
+
+                        {vaultTree.map((node) => (
+                          <MoveFileTreeNode 
+                            key={node.id} 
+                            node={node} 
+                            level={0} 
+                            nodeId={moveState.nodeId!} 
+                            currentFolderId={isOnShelf ? '___shelf___' : currentFolderId} 
+                          />
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
               </CustomScrollbar>
             </div>
-            <div className="vault-move-actions">
-              <button className="std-button secondary" onClick={() => setMoveState(prev => ({ ...prev, visible: false }))}>Cancel</button>
-              <button className="std-button primary" onClick={handleExecuteMove}>MOVE</button>
+            <div className="vault-move-actions" style={{ padding: '8px 12px', background: 'var(--paper-linen)' }}>
+              <button className="std-button small ghost" onClick={() => setMoveState(prev => ({ ...prev, visible: false }))}>Cancel</button>
+              <button 
+                className="std-button small primary" 
+                onClick={handleExecuteMove}
+                disabled={(() => {
+                  const nodeType = moveState.nodeType;
+                  const nodeId = moveState.nodeId;
+                  let currentLoc: string | null = null;
+                  if (nodeType === 'file') {
+                    const f = files.find(f => f.id === nodeId);
+                    currentLoc = f?.is_on_shelf ? 'shelf' : (f?.folder_id || null);
+                  } else {
+                    currentLoc = folders.find(f => f.id === nodeId)?.parent_id || null;
+                  }
+                  return moveState.selectedTargetId === currentLoc || isSaving;
+                })()}
+              >
+                {isSaving ? '...' : 'MOVE'}
+              </button>
             </div>
           </div>
         </div>
@@ -534,13 +701,13 @@ export function LibrarySidebar({ onOpenFile, tabs }: LibrarySidebarProps) {
         <div className="vault-move-overlay" style={{ zIndex: 1200 }}>
           <div className="vault-move-popup conflict">
             <div className="vault-move-header"><span>Duplicate Found</span></div>
-            <div className="vault-conflict-body">
+            <div className="vault-conflict-body" style={{ padding: '16px', fontSize: '0.85rem' }}>
               <p>A {conflictState.sourceType} named "<strong>{conflictState.sourceName}</strong>" already exists in the destination.</p>
               <p>Do you want to replace it?</p>
             </div>
-            <div className="vault-move-actions">
+            <div className="vault-move-actions" style={{ padding: '8px 12px', background: 'var(--paper-linen)' }}>
               <button className="std-button secondary small" onClick={() => handleResolveConflict('cancel')}>Cancel</button>
-              <button className="std-button primary danger small" onClick={() => handleResolveConflict('replace')}>Replace</button>
+              <button className="std-button primary danger small" onClick={() => handleResolveConflict('replace')}>{isSaving ? '...' : 'Replace'}</button>
             </div>
           </div>
         </div>

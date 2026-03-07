@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import { Vault, VaultFolder, VaultFile, FileNode } from '@/shared/types/vault'
+import { useTabStore } from '../../tabs/store/tabStore'
 
 interface VaultState {
   vaults: Vault[]
@@ -26,12 +27,12 @@ interface VaultState {
   fetchVaults: () => Promise<void>
   fetchVaultContent: (vaultId: string) => Promise<void>
   createFolder: (name: string, parentId?: string) => Promise<any>
-  createFile: (name: string, folderId?: string, isOnShelf?: boolean) => Promise<any>
+  createFile: (name: string, folderId?: string, isOnShelf?: boolean, isOnDesk?: boolean) => Promise<any>
   renameNode: (id: string, type: 'folder' | 'file', newName: string) => Promise<void>
-  moveNode: (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf?: boolean) => Promise<void>
+  moveNode: (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf?: boolean, isOnDesk?: boolean) => Promise<void>
   deleteNode: (id: string, type: 'folder' | 'file') => Promise<void>
-  uploadFile: (file: File, folderId?: string, isOnShelf?: boolean) => Promise<any>
-  checkDuplicate: (name: string, type: 'folder' | 'file', parentId: string | null, excludeId?: string, isOnShelf?: boolean) => boolean
+  uploadFile: (file: File, folderId?: string, isOnShelf?: boolean, isOnDesk?: boolean) => Promise<any>
+  checkDuplicate: (name: string, type: 'folder' | 'file', parentId: string | null, excludeId?: string, isOnShelf?: boolean, isOnDesk?: boolean) => boolean
 }
 
 export const useVaultStore = create<VaultState>((set, get) => ({
@@ -53,7 +54,7 @@ export const useVaultStore = create<VaultState>((set, get) => ({
   setIsCreating: (isCreating) => set({ isCreating }),
   setIsEditing: (isEditing) => set({ isEditing }),
 
-  checkDuplicate: (name, type, parentId, excludeId, isOnShelf = false) => {
+  checkDuplicate: (name, type, parentId, excludeId, isOnShelf = false, isOnDesk = false) => {
     const trimmedName = name.trim().toLowerCase();
     if (type === 'folder') {
       return get().folders.some(f => 
@@ -62,14 +63,13 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         (f.parent_id || null) === (parentId || null)
       );
     } else {
-      // If it's on the shelf, we allow duplicates (the user will handle naming separately or we just let it be)
-      // Actually the user said "allow duplicate names (using a soft number marker)"
-      // So checkDuplicate for shelf should probably always return false, and we handle naming in createFile
-      if (isOnShelf) return false;
+      // If it's on the shelf or desk, we allow duplicates or handle naming separately
+      if (isOnShelf || isOnDesk) return false;
 
       return get().files.some(f => 
         f.id !== excludeId &&
         !f.is_on_shelf &&
+        !f.is_on_desk &&
         (f.name || '').trim().toLowerCase() === trimmedName && 
         (f.folder_id || null) === (parentId || null)
       );
@@ -118,20 +118,25 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       let vaultId = get().activeVaultId
       if (!vaultId) {
         const { data: authData } = await supabase.auth.getUser()
-        const { data: vault, error: vError } = await supabase
+        const { data: vaults, error: vError } = await supabase
           .from('vaults')
           .insert([{ name: 'Main Vault', owner_id: authData.user?.id }])
-          .select().single()
+          .select()
+        
         if (vError) throw vError
+        if (!vaults || vaults.length === 0) throw new Error('Vault creation failed')
+        const vault = vaults[0]
         vaultId = vault.id
         set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
       }
 
-      const { data, error } = await supabase
+      const { data: folders, error } = await supabase
         .from('vault_folders')
         .insert([{ name, vault_id: vaultId, parent_id: parentId }])
-        .select().single()
+        .select()
       if (error) throw error
+      if (!folders || folders.length === 0) throw new Error('Folder creation failed')
+      const data = folders[0]
       set(state => ({ folders: [...state.folders, data as VaultFolder] }))
       return data
     } catch (err: any) {
@@ -139,24 +144,26 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  createFile: async (name: string, folderId?: string, isOnShelf: boolean = false) => {
+  createFile: async (name: string, folderId?: string, isOnShelf: boolean = false, isOnDesk: boolean = false) => {
     try {
       let vaultId = get().activeVaultId
       if (!vaultId) {
         const { data: authData } = await supabase.auth.getUser()
-        const { data: vault, error: vError } = await supabase
+        const { data: vaults, error: vError } = await supabase
           .from('vaults')
           .insert([{ name: 'Main Vault', owner_id: authData.user?.id }])
-          .select().single()
+          .select()
         if (vError) throw vError
+        if (!vaults || vaults.length === 0) throw new Error('Vault creation failed')
+        const vault = vaults[0]
         vaultId = vault.id
         set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
       }
 
       let finalName = name;
-      if (isOnShelf) {
+      if (isOnShelf || isOnDesk) {
         const existingNames = get().files
-          .filter(f => f.is_on_shelf)
+          .filter(f => (isOnShelf && f.is_on_shelf) || (isOnDesk && f.is_on_desk))
           .map(f => f.name.toLowerCase());
         
         let counter = 0;
@@ -170,17 +177,20 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         }
       }
 
-      const { data, error } = await supabase
+      const { data: files, error } = await supabase
         .from('files')
         .insert([{ 
           name: finalName, 
           vault_id: vaultId, 
           folder_id: folderId,
           is_on_shelf: isOnShelf,
+          is_on_desk: isOnDesk,
           storage_path: `${vaultId}/${Date.now()}_${finalName}`
         }])
-        .select().single()
+        .select()
       if (error) throw error
+      if (!files || files.length === 0) throw new Error('File creation failed')
+      const data = files[0]
       set(state => ({ files: [...state.files, data as VaultFile] }))
       return data
     } catch (err: any) {
@@ -203,24 +213,28 @@ export const useVaultStore = create<VaultState>((set, get) => ({
     }
   },
 
-  moveNode: async (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf: boolean = false) => {
+  moveNode: async (id: string, type: 'folder' | 'file', targetFolderId: string | null, isOnShelf: boolean = false, isOnDesk: boolean = false) => {
     try {
       const table = type === 'folder' ? 'vault_folders' : 'files'
       const updates: any = {}
+      const now = new Date().toISOString()
       
       if (type === 'folder') {
         updates.parent_id = targetFolderId
+        updates.updated_at = now
       } else {
         updates.folder_id = targetFolderId
         updates.is_on_shelf = isOnShelf
+        updates.is_on_desk = isOnDesk
+        updates.updated_at = now
       }
 
       const { error } = await supabase.from(table).update(updates).eq('id', id)
       if (error) throw error
       if (type === 'folder') {
-        set(state => ({ folders: state.folders.map(f => f.id === id ? { ...f, parent_id: targetFolderId || undefined } : f) }))
+        set(state => ({ folders: state.folders.map(f => f.id === id ? { ...f, parent_id: targetFolderId || undefined, updated_at: now } : f) }))
       } else {
-        set(state => ({ files: state.files.map(f => f.id === id ? { ...f, folder_id: targetFolderId || undefined, is_on_shelf: isOnShelf } : f) }))
+        set(state => ({ files: state.files.map(f => f.id === id ? { ...f, folder_id: targetFolderId || undefined, is_on_shelf: isOnShelf, is_on_desk: isOnDesk, updated_at: now } : f) }))
       }
     } catch (err: any) {
       set({ error: err.message })
@@ -244,30 +258,34 @@ export const useVaultStore = create<VaultState>((set, get) => ({
         set(state => ({ folders: state.folders.filter(f => f.id !== id) }))
       } else {
         set(state => ({ files: state.files.filter(f => f.id !== id) }))
+        // Close any tabs associated with this file
+        useTabStore.getState().closeTabsByFileId(id)
       }
     } catch (err: any) {
       set({ error: err.message })
     }
   },
 
-  uploadFile: async (file: File, folderId?: string, isOnShelf: boolean = false) => {
+  uploadFile: async (file: File, folderId?: string, isOnShelf: boolean = false, isOnDesk: boolean = false) => {
     try {
       let vaultId = get().activeVaultId
       if (!vaultId) {
         const { data: authData } = await supabase.auth.getUser()
-        const { data: vault, error: vError } = await supabase
+        const { data: vaults, error: vError } = await supabase
           .from('vaults')
           .insert([{ name: 'Main Vault', owner_id: authData.user?.id }])
-          .select().single()
+          .select()
         if (vError) throw vError
+        if (!vaults || vaults.length === 0) throw new Error('Vault creation failed')
+        const vault = vaults[0]
         vaultId = vault.id
         set(state => ({ vaults: [...state.vaults, vault], activeVaultId: vault.id }))
       }
 
       let finalName = file.name;
-      if (isOnShelf) {
+      if (isOnShelf || isOnDesk) {
         const existingNames = get().files
-          .filter(f => f.is_on_shelf)
+          .filter(f => (isOnShelf && f.is_on_shelf) || (isOnDesk && f.is_on_desk))
           .map(f => f.name.toLowerCase());
         
         let counter = 0;
@@ -295,23 +313,26 @@ export const useVaultStore = create<VaultState>((set, get) => ({
       if (uploadError) throw uploadError
 
       // Insert record in DB
-      const { data, error: dbError } = await supabase
+      const { data: dbData, error: dbError } = await supabase
         .from('files')
         .insert([{
           name: finalName,
           vault_id: vaultId,
           folder_id: folderId,
           is_on_shelf: isOnShelf,
+          is_on_desk: isOnDesk,
           storage_path: storagePath,
           mime_type: file.type,
           size: file.size,
           metadata: {}
         }])
-        .select().single()
+        .select()
 
       if (dbError) throw dbError
+      if (!dbData || dbData.length === 0) throw new Error('File record creation failed')
 
-      set(state => ({ files: [...state.files, data as VaultFile] }))
+      const data = dbData[0] as VaultFile;
+      set(state => ({ files: [...state.files, data] }))
       return data
     } catch (err: any) {
       set({ error: err.message })

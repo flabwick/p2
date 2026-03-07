@@ -19,6 +19,28 @@
   overflow: hidden;
   position: relative;
   z-index: 20;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-wrapper.no-transition {
+  transition: none;
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(1px);
+  z-index: 1150; /* Above Header (1100) but below Expanded Sidebar (1200) */
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Sidebar open state - handled by inline styles for dynamic width */

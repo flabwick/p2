@@ -14,6 +14,8 @@ export interface FileViewerProps {
   fileExtension?: string;
   className?: string;
   style?: React.CSSProperties;
+  isEmbedded?: boolean;
+  onCountChange?: (counts: { words: number; tokens: number }) => void;
 }
 
 /**
@@ -25,20 +27,22 @@ export const FileViewer: React.FC<FileViewerProps> = ({
   title, 
   fileExtension, 
   className,
-  style
+  style,
+  isEmbedded,
+  onCountChange
 }) => {
   const extension = fileExtension?.toLowerCase();
 
   if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
-    return <ImageViewer fileId={fileId} title={title} className={className} style={style} />;
+    return <ImageViewer fileId={fileId} title={title} className={className} style={style} isEmbedded={isEmbedded} />;
   }
 
   if (extension === 'pdf') {
-    return <PdfViewer fileId={fileId} title={title} className={className} style={style} />;
+    return <PdfViewer fileId={fileId} title={title} className={className} style={style} onCountChange={onCountChange} />;
   }
 
   if (extension === 'epub') {
-    return <EpubViewer fileId={fileId} title={title} className={className} style={style} />;
+    return <EpubViewer fileId={fileId} title={title} className={className} style={style} isEmbedded={isEmbedded} onCountChange={onCountChange} />;
   }
 
   return (

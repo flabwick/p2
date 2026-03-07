@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Toolbar, SaveStatus } from './components/Toolbar';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { supabase } from '@/lib/supabase';
+import { useDeskStore } from '@/features/pockets/store/deskStore';
+import { countWords, estimateTokens } from '@shared/lib/counting';
 import './styles/Editor.css';
 
 export interface EditorProps {
@@ -9,6 +11,10 @@ export interface EditorProps {
   initialContent?: string;
   title?: string;
   languageType?: 'markdown' | 'plain';
+  pocketId?: string;
+  cardId?: string;
+  isDeskOnly?: boolean;
+  onCountChange?: (counts: { words: number; tokens: number }) => void;
 }
 
 /**
@@ -20,7 +26,11 @@ export const Editor: React.FC<EditorProps> = ({
   fileId,
   initialContent: propInitialContent = '', 
   title,
-  languageType = 'markdown'
+  languageType = 'markdown',
+  pocketId,
+  cardId,
+  isDeskOnly = false,
+  onCountChange
 }) => {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [content, setContent] = useState(propInitialContent);
@@ -29,6 +39,15 @@ export const Editor: React.FC<EditorProps> = ({
   const lastSavedAt = useRef<number>(0);
   const isInitialLoad = useRef(true);
   const isSyncing = useRef(false);
+
+  const { updateFileCard } = useDeskStore();
+
+  const calculateCounts = (text: string) => {
+    return { 
+      words: countWords(text), 
+      tokens: estimateTokens(text) 
+    };
+  };
 
   // Helper to detect if content is actually a Supabase error message
   const isErrorJSON = (text: string) => {
@@ -40,21 +59,35 @@ export const Editor: React.FC<EditorProps> = ({
     if (!fileId) return;
 
     const loadFile = async () => {
+      console.log(`[Editor:${fileId}] Starting load cycle...`);
       setIsLoaded(false); 
       setSaveStatus('idle');
       
       try {
         isSyncing.current = true;
+        
+        // Use prop content immediately if available to avoid flash/race
+        if (propInitialContent && propInitialContent !== content) {
+          console.log(`[Editor:${fileId}] Using provided initialContent.`);
+          setContent(propInitialContent);
+          if (onCountChange) {
+            onCountChange(calculateCounts(propInitialContent));
+          }
+        }
+
         const { data: fileData, error: fileError } = await supabase
           .from('files')
           .select('storage_path')
           .eq('id', fileId)
           .maybeSingle();
 
-        if (fileError) throw fileError;
+        if (fileError) {
+          console.error(`[Editor:${fileId}] Failed to fetch metadata:`, fileError);
+          throw fileError;
+        }
         
         if (!fileData) {
-          console.warn(`File with ID ${fileId} not found in database.`);
+          console.warn(`[Editor:${fileId}] File not found in database.`);
           setSaveStatus('error');
           return;
         }
@@ -65,40 +98,64 @@ export const Editor: React.FC<EditorProps> = ({
         
         setStoragePath(cleanPath);
 
+        // If we already have content from props, we can skip the initial download
+        // or just do it in background. For now, let's download to ensure latest.
+        console.log(`[Editor:${fileId}] Downloading from storage: ${cleanPath}`);
+        
+        // Cache busting: Append timestamp to ensure fresh fetch from server
         const { data, error: downloadError } = await supabase.storage
           .from('vaults')
-          .download(cleanPath);
+          .download(`${cleanPath}?t=${Date.now()}`);
 
         if (downloadError) {
-          console.log('New file detected, using default content');
-          const defaultContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
-          setContent(defaultContent);
+          console.log(`[Editor:${fileId}] Download failed or file new.`, downloadError);
+          if (!propInitialContent) {
+            const defaultContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
+            setContent(defaultContent);
+          }
           setIsLoaded(true);
           return;
         }
 
         const text = await data.text();
+        console.log(`[Editor:${fileId}] Downloaded ${text.length} bytes.`);
 
         if (isErrorJSON(text)) {
-          console.warn('Detected error JSON in file content, clearing');
-          const recoveredContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
-          setContent(recoveredContent);
+          console.warn(`[Editor:${fileId}] Detected error JSON in content.`);
+          if (!propInitialContent) {
+            const recoveredContent = languageType === 'markdown' ? `# ${title || 'Untitled'}\n\n` : '';
+            setContent(recoveredContent);
+            if (onCountChange) {
+              onCountChange(calculateCounts(recoveredContent));
+            }
+          }
         } else {
-          setContent(text);
+          // IMPORTANT: Only overwrite if storage is DIFFERENT from what we have
+          // This prevents overwriting fresh prop data with potentially stale cached storage data
+          if (text !== content) {
+            console.log(`[Editor:${fileId}] Content updated from storage.`);
+            setContent(text);
+            if (onCountChange) {
+              onCountChange(calculateCounts(text));
+            }
+          }
         }
         
         setIsLoaded(true);
       } catch (err) {
-        console.error('Error loading file:', err);
+        console.error(`[Editor:${fileId}] Load cycle error:`, err);
         setSaveStatus('error');
       } finally {
         isSyncing.current = false;
-        setTimeout(() => { isInitialLoad.current = false; }, 100);
+        setTimeout(() => { 
+          isInitialLoad.current = false; 
+          console.log(`[Editor:${fileId}] Load complete.`);
+        }, 100);
       }
     };
 
     loadFile();
-  }, [fileId, title, languageType]);
+  }, [fileId]); // Only trigger on ID change, props change handled by setContent in effect if needed
 
   // 2. Realtime Sync: Listen for changes from other instances
   useEffect(() => {
@@ -119,14 +176,16 @@ export const Editor: React.FC<EditorProps> = ({
           if (remoteUpdatedAt > lastSavedAt.current + 1000) { 
             try {
               isSyncing.current = true;
+              console.log(`[Editor:${fileId}] Realtime change detected.`);
               const { data, error } = await supabase.storage
                 .from('vaults')
-                .download(payload.new.storage_path);
+                .download(`${payload.new.storage_path}?t=${Date.now()}`);
               
               if (error) throw error;
               const text = await data.text();
               
               if (text !== content) {
+                console.log(`[Editor:${fileId}] Applying remote change.`);
                 setContent(text);
                 setSaveStatus('saved');
                 
@@ -135,7 +194,7 @@ export const Editor: React.FC<EditorProps> = ({
                 }, 3000);
               }
             } catch (err) {
-              console.error('Error syncing remote changes:', err);
+              console.error(`[Editor:${fileId}] Realtime sync error:`, err);
             } finally {
               isSyncing.current = false;
             }
@@ -157,8 +216,10 @@ export const Editor: React.FC<EditorProps> = ({
     if (isInitialLoad.current) return;
 
     const saveTimeout = setTimeout(async () => {
+      console.log(`[Editor:${fileId}] Autosaving...`);
       setSaveStatus('saving');
       try {
+        // 1. Save to Storage
         const { error: uploadError } = await supabase.storage
           .from('vaults')
           .upload(storagePath, content, {
@@ -169,33 +230,57 @@ export const Editor: React.FC<EditorProps> = ({
 
         if (uploadError) throw uploadError;
 
+        // 2. Update File Metadata
         const now = new Date();
+        const fileSize = new Blob([content]).size;
         const { error: dbError } = await supabase
           .from('files')
-          .update({ updated_at: now.toISOString() })
+          .update({ 
+            updated_at: now.toISOString(),
+            size: fileSize
+          })
           .eq('id', fileId);
 
         if (dbError) throw dbError;
 
+        // 3. Sync with Desk State if applicable
+        if (pocketId && cardId) {
+          console.log(`[Editor:${fileId}] Updating desk state.`);
+          const { words, tokens } = calculateCounts(content);
+          const updates: any = { 
+            size: fileSize,
+            word_count: words,
+            token_count: tokens
+          };
+          if (isDeskOnly) {
+            updates.content = content;
+          }
+          await updateFileCard(pocketId, cardId, updates);
+        }
+
         lastSavedAt.current = now.getTime();
         setSaveStatus('saved');
+        console.log(`[Editor:${fileId}] Save successful.`);
         
         setTimeout(() => {
           setSaveStatus((prev) => prev === 'saved' ? 'idle' : prev);
         }, 3000);
         
       } catch (err) {
-        console.error('Error autosaving:', err);
+        console.error(`[Editor:${fileId}] Autosave failed:`, err);
         setSaveStatus('error');
       }
     }, 2000); 
 
     return () => clearTimeout(saveTimeout);
-  }, [content, fileId, storagePath, isLoaded, languageType]);
+  }, [content, fileId, storagePath, isLoaded, languageType, isDeskOnly, pocketId, cardId, updateFileCard]);
 
   const handleUpdate = (newContent: string) => {
     if (!isSyncing.current && isLoaded) {
       setContent(newContent);
+      if (onCountChange) {
+        onCountChange(calculateCounts(newContent));
+      }
     }
   };
 

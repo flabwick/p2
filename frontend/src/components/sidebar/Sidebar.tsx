@@ -9,6 +9,7 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   onWidthChange?: (width: number) => void
+  onResizingChange?: (isResizing: boolean) => void
   initialWidth?: number
   tabs: Tab[]
   activeTabId: string
@@ -24,6 +25,7 @@ export function Sidebar({
   isOpen, 
   onClose, 
   onWidthChange, 
+  onResizingChange,
   initialWidth = 320,
   tabs,
   activeTabId,
@@ -47,6 +49,7 @@ export function Sidebar({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsResizing(true)
+    onResizingChange?.(true)
     startX.current = e.clientX
     startWidth.current = sidebarWidth
     
@@ -66,6 +69,7 @@ export function Sidebar({
     const handleMouseUp = () => {
       if (isResizing) {
         setIsResizing(false)
+        onResizingChange?.(false)
         document.body.style.cursor = ''
         document.body.style.userSelect = ''
       }
@@ -79,12 +83,12 @@ export function Sidebar({
         document.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [isResizing])
+  }, [isResizing, onResizingChange])
 
   return (
     <>
       <div 
-        className={`sidebar-container ${!isOpen ? 'collapsed' : ''}`} 
+        className={`sidebar-container ${!isOpen ? 'collapsed' : ''} ${isResizing ? 'is-resizing' : ''}`} 
         style={{ width: `${isOpen ? sidebarWidth : 48}px` }}
       >
         {isOpen && <SidebarHeader onClose={onClose} />}

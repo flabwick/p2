@@ -14,7 +14,14 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 1000; /* Overlap everything when expanded */
+  z-index: 1200; /* Above everything (including header) when expanded */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              top 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-container.is-resizing {
+  transition: none;
 }
 
 .sidebar-container::after {
@@ -50,7 +57,7 @@
   background-color: transparent;
   cursor: ew-resize;
   transition: background-color 0.1s ease;
-  z-index: 1001;
+  z-index: 1201;
 }
 
 .sidebar-resize-handle:hover {

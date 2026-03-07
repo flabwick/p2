@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { CustomScrollbar } from '../../ui/CustomScrollbar';
-import { SearchIcon, FilterIcon, SelectorIcon } from './SidebarCommon';
+import { SearchIcon, FilterIcon, SelectorIcon, getFileIcon, stripExtension } from './SidebarCommon';
 import { useVaultStore } from '@/features/vault/store/vaultStore';
+import { usePocketStore } from '@/features/pockets/store/pocketStore';
 import { useShallow } from 'zustand/shallow';
 import './SidebarCommon.css';
 import './SidebarContent.css';
@@ -12,6 +13,7 @@ interface InboxSidebarProps {
 
 export function InboxSidebar({ onOpenFile }: InboxSidebarProps) {
   const [isVaultSelectorOpen, setIsVaultSelectorOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const selectorRef = useRef<HTMLDivElement>(null);
 
   const { activeVaultId, vaults, setActiveVaultId } = useVaultStore(useShallow(state => ({
@@ -19,6 +21,23 @@ export function InboxSidebar({ onOpenFile }: InboxSidebarProps) {
     vaults: state.vaults,
     setActiveVaultId: state.setActiveVaultId
   })));
+
+  const { pockets, fetchPockets, isLoading } = usePocketStore();
+
+  useEffect(() => {
+    fetchPockets();
+  }, [fetchPockets]);
+
+  const inboxItems = useMemo(() => {
+    let filtered = pockets.filter(p => p.is_inbox);
+    if (searchTerm) {
+      const lowSearch = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(lowSearch));
+    }
+    return filtered.sort((a, b) => 
+      new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    );
+  }, [pockets, searchTerm]);
 
   const selectedVault = useMemo(() => 
     vaults.find(v => v.id === activeVaultId)?.name || 'Select Vault',
@@ -43,7 +62,13 @@ export function InboxSidebar({ onOpenFile }: InboxSidebarProps) {
         <div className="vault-search-container">
           <div className="vault-search-input-wrapper">
             <SearchIcon />
-            <input type="text" placeholder="Search..." className="vault-search-input" />
+            <input 
+              type="text" 
+              placeholder="Search inbox..." 
+              className="vault-search-input" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <button className="vault-filter-btn" disabled>
             <FilterIcon />
@@ -54,17 +79,32 @@ export function InboxSidebar({ onOpenFile }: InboxSidebarProps) {
       <div className="pocket-tab-flex-layout">
         <CustomScrollbar className="pocket-content-scroll">
           <div className="pocket-list-skinnier">
-            {[
-              { id: 'i1', name: 'Daily News Brief', lastEdited: 'today', itemCount: 1 },
-              { id: 'i2', name: 'Weekly Summary', lastEdited: '2d ago', itemCount: 1 },
-            ].map(item => (
-              <div key={item.id} className="pocket-mini-item">
-                <div className="pocket-mini-name" title={item.name}>{item.name}</div>
-                <div className="pocket-mini-meta">
-                  <span className="pocket-mini-date">{item.lastEdited}</span>
+            {inboxItems.map(item => {
+              const { icon, colorClass } = getFileIcon(`${item.name}.pocket`);
+              return (
+                <div 
+                  key={item.id} 
+                  className={`pocket-mini-item ${colorClass}`}
+                  onClick={() => onOpenFile(item.id, `${item.name}.pocket`)}
+                >
+                  <div className="pocket-mini-icon" style={{ display: 'flex', alignItems: 'center' }}>
+                    {icon}
+                  </div>
+                  <div className="pocket-mini-name" title={item.name}>{item.name}</div>
+                  <div className="pocket-mini-meta">
+                    <span className="pocket-mini-date">
+                      {new Date(item.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
                 </div>
+              );
+            })}
+            {!isLoading && inboxItems.length === 0 && (
+              <div className="vault-loading" style={{ opacity: 0.5, textAlign: 'center', marginTop: '20px' }}>
+                Inbox is empty
               </div>
-            ))}
+            )}
+            {isLoading && <div className="vault-loading">Loading...</div>}
           </div>
         </CustomScrollbar>
       </div>
@@ -100,3 +140,4 @@ export function InboxSidebar({ onOpenFile }: InboxSidebarProps) {
     </div>
   );
 }
+

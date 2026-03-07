@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { MainPanel } from '../mainpanel/MainPanel'
 import { Sidebar } from '../sidebar'
-import { Tab, TabType } from '../../types/tabs'
+import { usePocketStore } from '../../features/pockets/store/pocketStore'
+import { useTabStore } from '../../features/tabs/store/tabStore'
+import { useShallow } from 'zustand/shallow'
 import './Layout.css'
 
 interface LayoutProps {
   children?: React.ReactNode
 }
+
+const MIN_MAIN_PANEL_WIDTH = 600; // Minimum width for main panel before sidebar overlays
 
 const Layout = ({ children }: LayoutProps) => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(() => {
@@ -16,38 +20,55 @@ const Layout = ({ children }: LayoutProps) => {
     const savedWidth = localStorage.getItem('sidebar-width')
     return savedWidth ? parseInt(savedWidth, 10) : 320
   })
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+  const [isSidebarResizing, setIsSidebarResizing] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const needsOverlay = useMemo(() => {
+    return windowWidth < sidebarWidth + MIN_MAIN_PANEL_WIDTH
+  }, [windowWidth, sidebarWidth])
+
+  // Track the previous needsOverlay state to detect transition from pushing to overlaying while open
+  const [prevNeedsOverlay, setPrevNeedsOverlay] = useState(needsOverlay)
+  useEffect(() => {
+    // If the sidebar is open and the window (or sidebar) resizes such that it would now squish the main panel,
+    // automatically close the sidebar. Subsequent opening will use the new overlay functionality.
+    if (isMenuExpanded && needsOverlay && !prevNeedsOverlay) {
+      setIsMenuExpanded(false)
+    }
+    setPrevNeedsOverlay(needsOverlay)
+  }, [needsOverlay, isMenuExpanded, prevNeedsOverlay])
   
-  // Load initial tabs from localStorage
-  const [tabs, setTabs] = useState<Tab[]>(() => {
-    const savedTabs = localStorage.getItem('sidebar-tabs')
-    if (savedTabs) {
-      try {
-        return JSON.parse(savedTabs)
-      } catch (e) {
-        console.error('Failed to parse saved tabs', e)
-      }
-    }
-    return [{ id: '1', type: 'pocket', title: 'New Tab' }]
-  })
-
-  // Load initial activeTabId from localStorage
-  const [activeTabId, setActiveTabId] = useState(() => {
-    const savedActiveId = localStorage.getItem('active-tab-id')
-    if (savedActiveId && tabs.some(t => t.id === savedActiveId)) {
-      return savedActiveId
-    }
-    return tabs[0]?.id || '1'
-  })
-
-  // Persist tabs to localStorage
-  useEffect(() => {
-    localStorage.setItem('sidebar-tabs', JSON.stringify(tabs))
-  }, [tabs])
-
-  // Persist activeTabId to localStorage
-  useEffect(() => {
-    localStorage.setItem('active-tab-id', activeTabId)
-  }, [activeTabId])
+  const { 
+    tabs, 
+    activeTabId, 
+    setActiveTabId, 
+    addTab, 
+    closeTab, 
+    duplicateTab, 
+    reorderTabs, 
+    updateTabType, 
+    updateTabTitle, 
+    openFile,
+    validateTabs
+  } = useTabStore(useShallow(state => ({
+    tabs: state.tabs,
+    activeTabId: state.activeTabId,
+    setActiveTabId: state.setActiveTabId,
+    addTab: state.addTab,
+    closeTab: state.closeTab,
+    duplicateTab: state.duplicateTab,
+    reorderTabs: state.reorderTabs,
+    updateTabType: state.updateTabType,
+    updateTabTitle: state.updateTabTitle,
+    openFile: state.openFile,
+    validateTabs: state.validateTabs
+  })))
 
   useEffect(() => {
     localStorage.setItem('sidebar-width', sidebarWidth.toString())
@@ -57,6 +78,11 @@ const Layout = ({ children }: LayoutProps) => {
     localStorage.setItem('sidebar-expanded', isMenuExpanded.toString())
   }, [isMenuExpanded])
 
+  // Validate stale localStorage tabs on mount
+  useEffect(() => {
+    validateTabs();
+  }, [validateTabs]);
+
   const handleMenuToggle = () => {
     setIsMenuExpanded(!isMenuExpanded)
   }
@@ -65,116 +91,67 @@ const Layout = ({ children }: LayoutProps) => {
     setSidebarWidth(width)
   }
 
-  const handleAddTab = () => {
-    const newId = Date.now().toString()
-    const newTab: Tab = { id: newId, type: 'welcome', title: 'New Tab' }
-    setTabs([...tabs, newTab])
-    setActiveTabId(newId)
-  }
+  const { createPocket } = usePocketStore()
 
-  const handleCloseTab = (id: string) => {
-    const newTabs = tabs.filter(tab => tab.id !== id)
+  const handleUpdateTabType = async (id: string, type: any) => {
+    console.log(`[Layout] Updating tab ${id} to type: ${type}`)
     
-    if (newTabs.length === 0) {
-      const newId = Date.now().toString()
-      const newTab: Tab = { id: newId, type: 'welcome', title: 'New Tab' }
-      setTabs([newTab])
-      setActiveTabId(newId)
-      return
-    }
-
-    setTabs(newTabs)
-    if (activeTabId === id) {
-      const activeIndex = tabs.findIndex(t => t.id === id)
-      const nextTab = newTabs[activeIndex] || newTabs[activeIndex - 1]
-      setActiveTabId(nextTab.id)
-    }
-  }
-
-  const handleDuplicateTab = (id: string) => {
-    const tabToDuplicate = tabs.find(tab => tab.id === id)
-    if (tabToDuplicate) {
-      const newId = Date.now().toString()
-      setTabs([...tabs, { ...tabToDuplicate, id: newId }])
-      setActiveTabId(newId)
-    }
-  }
-
-  const handleSelectTab = (id: string) => {
-    setActiveTabId(id)
-  }
-
-  const handleReorderTabs = (newTabs: Tab[]) => {
-    setTabs(newTabs)
-  }
-
-  const handleOpenFile = (fileId: string, title: string, forceNewTab = false) => {
-    if (!forceNewTab) {
-      const existingTab = tabs.find(tab => tab.fileId === fileId)
-      if (existingTab) {
-        setActiveTabId(existingTab.id)
-        return
+    if (type === 'pocket') {
+      const tab = tabs.find(t => t.id === id)
+      if (tab && !tab.fileId) {
+        // Atomic creation: Create the pocket FIRST, then update the tab state
+        const newPocket = await createPocket('New Pocket', undefined, false, false, true)
+        if (newPocket) {
+          updateTabType(id, 'pocket', newPocket.id, newPocket.name)
+          return
+        }
       }
     }
-    const fileExtension = title.split('.').pop()
-    const newId = Date.now().toString()
-    const newTab: Tab = { 
-      id: newId, 
-      type: fileExtension?.toLowerCase() === 'pocket' ? 'pocket' : 'file', 
-      title, 
-      fileId,
-      fileExtension 
-    }
-    setTabs([...tabs, newTab])
-    setActiveTabId(newId)
-  }
-
-  const handleUpdateTabType = (id: string, type: TabType) => {
-    setTabs(tabs.map(tab => tab.id === id ? { ...tab, type } : tab))
-  }
-
-  const handleUpdateTabTitle = (id: string, title: string) => {
-    setTabs(tabs.map(tab => {
-      if (tab.id === id) {
-        const fileExtension = tab.type === 'file' ? title.split('.').pop() : tab.fileExtension
-        return { ...tab, title, fileExtension }
-      }
-      return tab
-    }))
+    
+    updateTabType(id, type)
   }
 
   const activeTab = tabs.find(tab => tab.id === activeTabId) || tabs[0]
 
   return (
     <div 
-      className={`layout-wrapper ${isMenuExpanded ? 'sidebar-open' : ''}`}
+      className={`layout-wrapper ${isMenuExpanded ? 'sidebar-open' : ''} ${needsOverlay ? 'is-overlay' : ''} ${isSidebarResizing ? 'no-transition' : ''}`}
       style={{
-        marginLeft: isMenuExpanded ? `${sidebarWidth}px` : '0',
-        width: isMenuExpanded ? `calc(100% - ${sidebarWidth}px)` : '100%'
-      }}
+        marginLeft: (isMenuExpanded && !needsOverlay) ? `${sidebarWidth}px` : '0',
+        width: (isMenuExpanded && !needsOverlay) ? `calc(100% - ${sidebarWidth}px)` : '100%',
+        '--sidebar-width': isMenuExpanded ? `${sidebarWidth}px` : '0px'
+      } as React.CSSProperties}
     >
       <MainPanel
         onMenuToggle={handleMenuToggle}
         isMenuExpanded={isMenuExpanded}
         activeTab={activeTab}
         onUpdateTabType={(type) => handleUpdateTabType(activeTabId, type)}
-        onUpdateTabTitle={(title) => handleUpdateTabTitle(activeTabId, title)}
+        onUpdateTabTitle={(title) => updateTabTitle(activeTabId, title)}
         sidebarOffset={isMenuExpanded ? 0 : 48}
       />
+
+      {isMenuExpanded && needsOverlay && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setIsMenuExpanded(false)}
+        />
+      )}
       
       <Sidebar 
         isOpen={isMenuExpanded} 
         onClose={() => setIsMenuExpanded(false)}
         onWidthChange={handleSidebarWidthChange}
+        onResizingChange={setIsSidebarResizing}
         initialWidth={sidebarWidth}
         tabs={tabs}
         activeTabId={activeTabId}
-        onSelectTab={handleSelectTab}
-        onReorderTabs={handleReorderTabs}
-        onAddTab={handleAddTab}
-        onOpenFile={handleOpenFile}
-        onCloseTab={handleCloseTab}
-        onDuplicateTab={handleDuplicateTab}
+        onSelectTab={setActiveTabId}
+        onReorderTabs={reorderTabs}
+        onAddTab={addTab}
+        onOpenFile={openFile}
+        onCloseTab={closeTab}
+        onDuplicateTab={duplicateTab}
       />
     </div>
   )
