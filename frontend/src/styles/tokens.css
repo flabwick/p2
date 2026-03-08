@@ -84,6 +84,22 @@
   --transition-paper: 0.2s ease;
   --transition-slow: 0.3s ease-in-out;
   
+  /* =============== MOBILE BREAKPOINTS ===============
+     Responsive design breakpoints
+     ========================================= */
+  --mobile-breakpoint: 768px;
+  --tablet-breakpoint: 1024px;
+  --desktop-breakpoint: 1200px;
+  
+  /* =============== MOBILE-SPECIFIC SIZING ===============
+     Touch-friendly dimensions
+     =========================================== */
+  --mobile-touch-target: 44px;
+  --mobile-safe-area-top: env(safe-area-inset-top);
+  --mobile-safe-area-bottom: env(safe-area-inset-bottom);
+  --mobile-safe-area-left: env(safe-area-inset-left);
+  --mobile-safe-area-right: env(safe-area-inset-right);
+  
   /* =============== Z-INDEX SCALE ===============
      Layering hierarchy
   ========================================= */

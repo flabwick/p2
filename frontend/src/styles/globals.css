@@ -14,3 +14,6 @@
 
 /* 4. Utility classes and helpers */
 @import './utilities.css';
+
+/* 5. Mobile-specific styles (desktop unaffected) */
+@import './mobile.css';

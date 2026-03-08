@@ -120,27 +120,6 @@
   padding: var(--space-lg) 0;
 }
 
-.feed-card {
-  background: var(--paper-ivory);
-  border: var(--border-medium);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-  width: 100%;
-}
-
-.feed-card h3 {
-  font-family: var(--font-mono);
-  font-size: 1rem;
-  margin-bottom: var(--space-sm);
-  color: var(--ink-dark);
-}
-
-.feed-card p {
-  font-family: var(--font-serif);
-  font-size: 0.875rem;
-  color: var(--ink-medium);
-}
-
 .viewer-container h2 {
   font-size: 2rem;
   font-weight: 700;

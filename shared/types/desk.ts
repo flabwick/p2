@@ -23,6 +23,7 @@ export interface Desk {
   id: string;
   pocket_id: string;
   name: string;
-  feed_state: DeskState;
+  canvas_state: DeskState;
   created_at: string;
+  updated_at?: string;
 }

@@ -251,7 +251,7 @@ export const DeskViewer: React.FC<DeskViewerProps> = ({ pocketId }) => {
 
     if (nodeId && pocketId && nodeType !== 'pocket') {
       const desk = desks[pocketId];
-      const items = desk?.feed_state?.items || [];
+      const items = desk?.canvas_state?.items || [];
       
       const file = files.find(f => f.id === nodeId);
       if (!file) {
@@ -334,7 +334,7 @@ export const DeskViewer: React.FC<DeskViewerProps> = ({ pocketId }) => {
   }, [folders, files, searchTerm]);
 
   const desk = pocketId ? desks[pocketId] : null;
-  const items = desk?.feed_state?.items || [];
+  const items = desk?.canvas_state?.items || [];
   const activeCard = useMemo(() => items.find(item => item.id === activeId), [items, activeId]);
 
   const displayItems = useMemo(() => {

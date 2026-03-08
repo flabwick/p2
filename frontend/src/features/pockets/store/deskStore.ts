@@ -48,9 +48,9 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
       if (existing) {
         const desk = existing as Desk;
         console.log(`[DeskStore] Found existing desk for pocket ${pocketId}:`, desk.id);
-        if (!desk.feed_state || typeof desk.feed_state !== 'object' || !('items' in (desk.feed_state as any))) {
-          console.warn(`[DeskStore] Desk ${desk.id} had invalid feed_state, initializing...`);
-          desk.feed_state = { items: [] };
+        if (!desk.canvas_state || typeof desk.canvas_state !== 'object' || !('items' in (desk.canvas_state as any))) {
+          console.warn(`[DeskStore] Desk ${desk.id} had invalid canvas_state, initializing...`);
+          desk.canvas_state = { items: [] };
         }
         set(state => ({ desks: { ...state.desks, [pocketId]: desk }, isLoading: false }));
         return desk;
@@ -74,7 +74,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
           id: 'virtual-' + pocketId,
           pocket_id: pocketId,
           name: 'Virtual Desk',
-          feed_state: { items: [] },
+          canvas_state: { items: [] },
           created_at: new Date().toISOString()
         };
         set(state => ({ desks: { ...state.desks, [pocketId]: virtualDesk }, isLoading: false }));
@@ -84,7 +84,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
       console.log(`[DeskStore] Pocket ${pocketId} exists, creating new desk record...`);
       const { data: created, error: createError } = await supabase
         .from('desks')
-        .insert([{ pocket_id: pocketId, name: 'Main Desk', feed_state: { items: [] } }])
+        .insert([{ pocket_id: pocketId, name: 'Main Desk', canvas_state: { items: [] } }])
         .select()
         .maybeSingle();
 
@@ -160,7 +160,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
   addFileCard: async (pocketId, fileId, name, type, mime_type, size, content, index) => {
     console.log(`[DeskStore] addFileCard: ${name} to pocket ${pocketId}. Has content: ${!!content}, Index: ${index}`);
     const newCardId = crypto.randomUUID();
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     const currentDesk = get().desks[pocketId];
@@ -198,7 +198,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
       if (!existingDesk) {
         const { data: createdDesk } = await supabase
           .from('desks')
-          .insert([{ pocket_id: realPocketId, name: 'Main Desk', feed_state: { items: [] } }])
+          .insert([{ pocket_id: realPocketId, name: 'Main Desk', canvas_state: { items: [] } }])
           .select()
           .maybeSingle();
         finalDesk = createdDesk as Desk;
@@ -235,10 +235,10 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
         size,
         content,
         is_liked: isOnShelf || isInLibrary, // Sync with vault status
-        order: index !== undefined ? index : desk.feed_state.items.length
+        order: index !== undefined ? index : desk.canvas_state.items.length
       };
 
-      const newItems = [...desk.feed_state.items];
+      const newItems = [...desk.canvas_state.items];
       if (index !== undefined) {
         newItems.splice(index, 0, newCard);
       } else {
@@ -248,19 +248,19 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
       // Normalize order
       const normalizedItems = newItems.map((item, idx) => ({ ...item, order: idx }));
       
-      updatedFeedState = { items: normalizedItems };
+      updatedCanvasState = { items: normalizedItems };
       lastUpdatedAt[pocketId] = Date.now();
       console.log(`[DeskStore] Local state updated with new card. Desk ID: ${deskId}`);
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
     // 3. Persist to DB
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
       console.log(`[DeskStore] Persisting new card to DB for desk ${deskId}...`);
       const { error } = await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
       
@@ -273,26 +273,26 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
   },
 
   removeFileCard: async (pocketId, cardId) => {
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     set(state => {
       const desk = state.desks[pocketId];
       if (!desk) return state;
       deskId = desk.id;
-      const newItems = desk.feed_state.items
+      const newItems = desk.canvas_state.items
         .filter(item => item.id !== cardId)
         .map((item, index) => ({ ...item, order: index }));
-      updatedFeedState = { items: newItems };
+      updatedCanvasState = { items: newItems };
       lastUpdatedAt[pocketId] = Date.now();
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
       await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
     }
@@ -300,7 +300,7 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
 
   updateFileCard: async (pocketId, cardId, updates) => {
     console.log(`[DeskStore] updateFileCard for pocket ${pocketId}, card ${cardId}. Updates:`, updates);
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     set(state => {
@@ -310,21 +310,21 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
         return state;
       }
       deskId = desk.id;
-      const newItems = desk.feed_state.items.map(item => 
+      const newItems = desk.canvas_state.items.map(item => 
         item.id === cardId ? { ...item, ...updates } : item
       );
-      updatedFeedState = { items: newItems };
+      updatedCanvasState = { items: newItems };
       lastUpdatedAt[pocketId] = Date.now();
       console.log(`[DeskStore] Local state updated for desk ${deskId}.`);
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
-      console.log(`[DeskStore] Persisting updated feed_state to DB for desk ${deskId}...`);
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
+      console.log(`[DeskStore] Persisting updated canvas_state to DB for desk ${deskId}...`);
       const { error } = await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
       
@@ -337,14 +337,14 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
   },
 
   reorderCards: async (pocketId, activeId, overId) => {
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     set(state => {
       const desk = state.desks[pocketId];
       if (!desk) return state;
       deskId = desk.id;
-      const items = desk.feed_state.items;
+      const items = desk.canvas_state.items;
       const oldIndex = items.findIndex(item => item.id === activeId);
       const newIndex = items.findIndex(item => item.id === overId);
       if (oldIndex === -1 || newIndex === -1) return state;
@@ -353,30 +353,30 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
         ...item,
         order: index
       }));
-      updatedFeedState = { items: reorderedItems };
+      updatedCanvasState = { items: reorderedItems };
       lastUpdatedAt[pocketId] = Date.now();
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
       await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
     }
   },
 
   moveCard: async (pocketId, cardId, direction) => {
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     set(state => {
       const desk = state.desks[pocketId];
       if (!desk) return state;
       deskId = desk.id;
-      const items = [...desk.feed_state.items];
+      const items = [...desk.canvas_state.items];
       const index = items.findIndex(item => item.id === cardId);
       if (index === -1) return state;
 
@@ -387,42 +387,42 @@ export const useDeskStore = create<DeskStore>((set, get) => ({
         ...item,
         order: idx
       }));
-      updatedFeedState = { items: reorderedItems };
+      updatedCanvasState = { items: reorderedItems };
       lastUpdatedAt[pocketId] = Date.now();
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
       await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
     }
   },
 
   toggleCard: async (pocketId, cardId, field) => {
-    let updatedFeedState: IDeskState | null = null;
+    let updatedCanvasState: IDeskState | null = null;
     let deskId: string | null = null;
 
     set(state => {
       const desk = state.desks[pocketId];
       if (!desk) return state;
       deskId = desk.id;
-      const newItems = desk.feed_state.items.map(item => 
+      const newItems = desk.canvas_state.items.map(item => 
         item.id === cardId ? { ...item, [field]: !item[field] } : item
       );
-      updatedFeedState = { items: newItems };
+      updatedCanvasState = { items: newItems };
       lastUpdatedAt[pocketId] = Date.now();
       return {
-        desks: { ...state.desks, [pocketId]: { ...desk, feed_state: updatedFeedState } }
+        desks: { ...state.desks, [pocketId]: { ...desk, canvas_state: updatedCanvasState } }
       };
     });
 
-    if (deskId && !deskId.startsWith('virtual-') && updatedFeedState) {
+    if (deskId && !deskId.startsWith('virtual-') && updatedCanvasState) {
       await supabase.from('desks').update({ 
-        feed_state: updatedFeedState,
+        canvas_state: updatedCanvasState,
         updated_at: new Date().toISOString()
       }).eq('id', deskId);
     }

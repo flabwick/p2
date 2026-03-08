@@ -158,7 +158,7 @@ export const DeskFileCard: React.FC<DeskFileCardProps> = ({ card, pocketId, isDr
 
     // Duplicate Name Check on Desk
     const desk = desks[pocketId];
-    const items = desk?.feed_state?.items || [];
+    const items = desk?.canvas_state?.items || [];
     const isDuplicate = items.some(item => item.id !== card.id && item.name.toLowerCase() === fullNewName.toLowerCase());
     
     if (isDuplicate) {

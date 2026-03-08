@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import { MainPanel } from '../mainpanel/MainPanel'
 import { Sidebar } from '../sidebar'
+import { MobileLayout } from './MobileLayout'
 import { usePocketStore } from '../../features/pockets/store/pocketStore'
 import { useTabStore } from '../../features/tabs/store/tabStore'
 import { useShallow } from 'zustand/shallow'
+import { useMobileDetection } from '../../hooks/useMobileDetection'
 import './Layout.css'
 
 interface LayoutProps {
@@ -13,6 +15,7 @@ interface LayoutProps {
 const MIN_MAIN_PANEL_WIDTH = 600; // Minimum width for main panel before sidebar overlays
 
 const Layout = ({ children }: LayoutProps) => {
+  const isMobile = useMobileDetection()
   const [isMenuExpanded, setIsMenuExpanded] = useState(() => {
     return localStorage.getItem('sidebar-expanded') === 'true'
   })
@@ -112,6 +115,23 @@ const Layout = ({ children }: LayoutProps) => {
   }
 
   const activeTab = tabs.find(tab => tab.id === activeTabId) || tabs[0]
+
+  // Return mobile layout for mobile devices
+  if (isMobile) {
+    return (
+      <MobileLayout
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onSelectTab={setActiveTabId}
+        onAddTab={addTab}
+        onCloseTab={closeTab}
+        onUpdateTabType={updateTabType}
+        onUpdateTabTitle={updateTabTitle}
+      />
+    )
+  }
+
+  // Return desktop layout for desktop devices
 
   return (
     <div 

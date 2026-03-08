@@ -178,10 +178,10 @@ export function Header({
               </Button>
               <Button 
                 className="small" 
-                variant={pocketView === 'feed' ? 'primary' : 'ghost'}
-                onClick={() => onPocketViewChange('feed')}
+                variant={pocketView === 'canvas' ? 'primary' : 'ghost'}
+                onClick={() => onPocketViewChange('canvas')}
               >
-                Feed
+                Canvas
               </Button>
               <Button 
                 className="small" 

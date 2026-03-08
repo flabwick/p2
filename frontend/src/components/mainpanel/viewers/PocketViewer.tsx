@@ -1,6 +1,6 @@
 import React from 'react';
 import { DeskViewer } from './pocket/DeskViewer';
-import { FeedViewer } from './pocket/FeedViewer';
+import { CanvasViewer } from './pocket/CanvasViewer';
 import { LogViewer } from './pocket/LogViewer';
 import { WelcomeSelector } from './WelcomeSelector';
 import { PocketSubView } from '../dock/Dock';
@@ -28,7 +28,7 @@ export const PocketViewer: React.FC<PocketViewerProps> = ({
   const renderSubView = () => {
     switch (activeSubView) {
       case 'desk': return <DeskViewer pocketId={pocketId} />;
-      case 'feed': return <FeedViewer />;
+      case 'canvas': return <CanvasViewer pocketId={pocketId} />;
       case 'log': return <LogViewer />;
       default: return <DeskViewer pocketId={pocketId} />;
     }

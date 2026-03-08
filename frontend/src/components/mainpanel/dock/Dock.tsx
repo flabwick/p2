@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useDockStore } from '@/features/dock/store/dockStore'
 import { useDeskStore } from '@/features/pockets/store/deskStore'
+import { useCanvasStore } from '@/features/pockets/store/canvasStore'
 import { useVaultStore } from '@/features/vault/store/vaultStore'
 import { useTabStore } from '@/features/tabs/store/tabStore'
 import { DockEditor } from '@/features/dock/components/DockEditor'
@@ -8,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import './Dock.css'
 
 export type MainPanelView = 'pocket' | 'file' | 'role'
-export type PocketSubView = 'desk' | 'feed' | 'log'
+export type PocketSubView = 'desk' | 'canvas' | 'log'
 
 interface DockProps {
   activeView: MainPanelView
@@ -170,6 +171,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
   } = useDockStore();
 
   const { addFileCard, setIsAddPopupVisible, desks } = useDeskStore();
+  const { canvases, addCard, addCardWithBlock } = useCanvasStore();
   const { createFile, uploadFile } = useVaultStore();
   const { tabs: mainTabs, activeTabId: activeMainTabId } = useTabStore();
 
@@ -177,7 +179,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
   const activeDockTab = tabs[activeTabIndex];
 
   const desk = pocketId ? desks[pocketId] : null;
-  const deskItems = desk?.feed_state?.items || [];
+  const deskItems = desk?.canvas_state?.items || [];
   
   const totalCounts = useMemo(() => {
     return deskItems
@@ -196,7 +198,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
 
   // Keep track of which subview to render in the collapsible part to avoid jumps during animation
   const [renderedPocketView, setRenderedPocketView] = useState(pocketView);
-  const showPanelPart = activeView === 'pocket' && (pocketView === 'feed' || pocketView === 'desk');
+  const showPanelPart = activeView === 'pocket' && (pocketView === 'canvas' || pocketView === 'desk');
 
   useEffect(() => {
     // Only update the rendered content if we are expanded or becoming expanded
@@ -305,6 +307,20 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
     }
   };
 
+  const handleAddCard = async () => {
+    if (!pocketId) return;
+    const activeCanvas = canvases[pocketId]?.[0];
+    if (!activeCanvas) return;
+    await addCard(activeCanvas.id, 'New Card');
+  };
+
+  const handleAddMarkdownCard = async () => {
+    if (!pocketId) return;
+    const activeCanvas = canvases[pocketId]?.[0];
+    if (!activeCanvas) return;
+    await addCardWithBlock(activeCanvas.id, 'New Note', 'markdown', '# New Note\n\n');
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && pocketId) {
@@ -385,7 +401,15 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
         
         success = true;
       } 
-      // CASE 2: No active MD file or viewing pocket/welcome/role
+      // CASE 2: Viewing Canvas -> export to new Canvas Card
+      else if (pocketId && pocketView === 'canvas') {
+        const activeCanvas = canvases[pocketId]?.[0];
+        if (activeCanvas) {
+          await addCardWithBlock(activeCanvas.id, 'Note from Dock', 'markdown', activeDockTab.content.trim());
+          success = true;
+        }
+      }
+      // CASE 3: No active MD file or viewing desk/welcome/role
       else if (pocketId) {
         // Create a new markdown file from content
         const fileName = `Exported Note ${new Date().toLocaleTimeString()}.md`;
@@ -476,8 +500,8 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
         <div className={`dock-collapsible-section ${showPanelPart ? 'is-expanded' : ''}`}>
           <div className="dock-collapsible-content">
             <div className="dock-panel-part">
-              {renderedPocketView === 'feed' && (
-                <div className="dock-panel-controls feed-controls">
+              {renderedPocketView === 'canvas' && (
+                <div className="dock-panel-controls canvas-controls">
                   <button className="std-button ghost square small" aria-label="Skip Back">
                     <SkipBackIcon />
                   </button>
@@ -485,9 +509,30 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
                     <UndoIcon />
                   </button>
                   
-                  <button className="std-button primary square refresh-button" aria-label="Refresh Feed">
+                  <button className="std-button primary square refresh-button" aria-label="Refresh Canvas">
                     <RefreshIcon />
                   </button>
+
+                  <div className="dock-divider-vertical" />
+
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Add Markdown Card"
+                    onClick={handleAddMarkdownCard}
+                    title="Add Markdown Card"
+                  >
+                    <FileTextIcon />
+                  </button>
+                  <button 
+                    className="std-button ghost square small" 
+                    aria-label="Add Card"
+                    onClick={handleAddCard}
+                    title="Add Empty Card"
+                  >
+                    <PlusIcon />
+                  </button>
+
+                  <div className="dock-divider-vertical" />
                   
                   <button className="std-button ghost square small" aria-label="Redo">
                     <RedoIcon />
@@ -574,7 +619,7 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
                 disabled={isPlusDisabled}
                 draggable={!isPlusDisabled}
                 onDragStart={handleDragStart}
-                title={isMdActive ? "Append to active Markdown" : "Export to Desk as Markdown"}
+                title={isMdActive ? "Append to active Markdown" : (pocketView === 'canvas' ? "Export to Canvas as Card" : "Export to Desk as Markdown")}
               >
                 <PlusIcon />
               </button>
@@ -662,4 +707,3 @@ export function Dock({ activeView, pocketView, onPocketViewChange, pocketId, isF
     </footer>
   )
 }
-

@@ -239,7 +239,7 @@
   border: var(--border-medium);
 }
 
-/* Prominent Feed button - slightly wider */
+/* Prominent Canvas button - slightly wider */
 .view-toggle-btn.icon-only.prominent {
   min-width: 44px;
   width: 44px;
@@ -281,8 +281,8 @@
   transition: transform var(--transition-physical);
 }
 
-/* Feed action button */
-.feed-action-btn {
+/* Canvas action button */
+.canvas-action-btn {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -331,7 +331,7 @@
 }
 
 /* Loading spinner */
-.feed-block-spinner {
+.canvas-block-spinner {
   position: absolute;
   top: 50%;
   right: var(--space-md);
@@ -350,7 +350,7 @@
 /* Disabled state for buttons */
 .std-button:disabled,
 .view-action-btn:disabled,
-.feed-action-btn:disabled,
+.canvas-action-btn:disabled,
 .sidebar-tab-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -380,7 +380,7 @@
 /* Active states */
 .std-button:active,
 .view-action-btn:active,
-.feed-action-btn:active,
+.canvas-action-btn:active,
 .footer-button:active {
   transform: translateY(1px);
 }
